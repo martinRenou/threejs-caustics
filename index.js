@@ -1,7 +1,4 @@
-console.log(THREE);
-
 const canvas = document.getElementById('canvas');
-console.log(canvas);
 
 const width = canvas.width;
 const height = canvas.height;
@@ -10,8 +7,10 @@ const height = canvas.height;
 // Create Scene and Renderer
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
+camera.position.z = 2;
+camera.position.y = -3;
 
-const renderer = new THREE.WebGLRenderer({canvas: canvas});
+const renderer = new THREE.WebGLRenderer({canvas: canvas, antialias: true, alpha: true});
 renderer.setSize(width, height);
 renderer.setClearColor(new THREE.Color('white'));
 
@@ -31,18 +30,46 @@ controls.panSpeed = 0.9;
 controls.dynamicDampingFactor = 0.9;
 
 
-const geometry = new THREE.BoxGeometry();
-const material = new THREE.MeshBasicMaterial({color: 0x00ff00});
-const cube = new THREE.Mesh(geometry, material);
-scene.add(cube);
+// Function that fetches the buffers (vertices/triangle indices)
+function fetchArray(filename, type) {
+  return new Promise((resolve, reject) => {
+    const oReq = new XMLHttpRequest();
+    oReq.open('GET', filename, true);
+    oReq.responseType = 'arraybuffer';
 
-camera.position.z = 5;
+    oReq.onload = function (oEvent) {
+      const arrayBuffer = oReq.response;
+      if (arrayBuffer) {
+        resolve(new type(arrayBuffer));
+      } else {
+        reject('Did not get proper response for ' + filename);
+      }
+    };
+
+    oReq.onerror = function() {
+      reject('Could not get ' + filename);
+    };
+
+    oReq.send(null);
+  });
+}
+
+Promise.all([fetchArray('/data/vertices32_25.bin', Float32Array), fetchArray('/data/triangles32_25.bin', Uint32Array)]).then(([vertices, triangles]) => {
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
+  geometry.setIndex(new THREE.BufferAttribute(triangles, 1));
+  geometry.center();
+
+  const material = new THREE.MeshBasicMaterial({color: 'blue'});
+  material.side = THREE.DoubleSide;
+
+  const mesh = new THREE.Mesh(geometry, material);
+
+  scene.add(mesh);
+});
 
 
 function animate() {
-  cube.rotation.x += 0.01;
-  cube.rotation.y += 0.01;
-
   renderer.render(scene, camera);
 
   controls.update();
