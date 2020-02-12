@@ -7,8 +7,9 @@ const height = canvas.height;
 // Create Scene and Renderer
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
-camera.position.z = 2;
-camera.position.y = -3;
+camera.position.set(1.682, 3.130, 1.102);
+camera.rotation.set(-1.283, 0.024, 3.104);
+camera.up.set(0, -1, 0);
 
 const renderer = new THREE.WebGLRenderer({canvas: canvas, antialias: true, alpha: true});
 renderer.setSize(width, height);
