@@ -6,9 +6,20 @@
 
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/three@v0.113.0"></script>
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/three@v0.113.0/examples/js/controls/TrackballControls.js"></script>
+    <style type="text/css">
+      progress[value] {
+        /* Reset the default appearance */
+        -webkit-appearance: none;
+        appearance: none;
+
+        width: 250px;
+        height: 20px;
+      }
+    </style>
   </head>
 
   <body>
+    <progress id="progress" value="0" max="100"></progress>
     <canvas id="canvas" height="600px" width="800px"></canvas>
 
     <script type="text/javascript" src="index.js"></script>

@@ -1,4 +1,5 @@
 const canvas = document.getElementById('canvas');
+const progress = document.getElementById('progress');
 
 const width = canvas.width;
 const height = canvas.height;
@@ -45,6 +46,7 @@ light.shadow.mapSize.height = 1024;
 
 scene.add(light);
 
+
 // Create obstacle mesh
 const box = new THREE.Mesh(
   new THREE.BoxGeometry(0.16, 0.4, 0.16),
@@ -57,7 +59,8 @@ box.castShadow = true;
 box.receiveShadow = false;
 scene.add(box);
 
-// Create bounds meshes
+
+// Create floor and walls meshes
 const floor = new THREE.Mesh(
   new THREE.PlaneBufferGeometry(3.22, 1.),
   new THREE.MeshStandardMaterial()
@@ -142,21 +145,41 @@ function fetchArray(filename, type) {
   });
 }
 
-Promise.all([fetchArray('/data/vertices32_25.bin', Float32Array), fetchArray('/data/triangles32_25.bin', Uint32Array)]).then(([vertices, triangles]) => {
-  const geometry = new THREE.BufferGeometry();
-  geometry.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
-  geometry.setIndex(new THREE.BufferAttribute(triangles, 1));
+const N_TIMESTAMPS = 77;
+const geometries = [];
+const geometryPromises = [];
+progress.setAttribute('max', 77);
 
+
+for (let i = 0; i < N_TIMESTAMPS; i++) {
+  const verticesPromise = fetchArray('/data/vertices32_' + i + '.bin', Float32Array);
+  const trianglesPromise = fetchArray('/data/triangles32_' + i + '.bin', Uint32Array);
+
+  const promise = Promise.all([verticesPromise, trianglesPromise]).then(([vertices, triangles]) => {
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
+    geometry.setIndex(new THREE.BufferAttribute(triangles, 1));
+
+    geometries[i] = geometry;
+    progress.setAttribute('value', parseInt(progress.getAttribute('value')) + 1);
+  });
+
+  geometryPromises.push(promise);
+}
+
+Promise.all(geometryPromises).then(() => {
   const material = new THREE.MeshBasicMaterial({color: '#87b3d4'});
   material.side = THREE.DoubleSide;
   material.transparent = true;
   material.opacity = 0.7;
 
-  const mesh = new THREE.Mesh(geometry, material);
+  const mesh = new THREE.Mesh(geometries[25], material);
   box.castShadow = true;
   box.receiveShadow = false;
 
   scene.add(mesh);
+
+  animate();
 });
 
 
@@ -168,4 +191,3 @@ function animate() {
 
   window.requestAnimationFrame(animate);
 }
-animate();
