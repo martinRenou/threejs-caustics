@@ -12,6 +12,8 @@ camera.position.y = -3;
 
 const renderer = new THREE.WebGLRenderer({canvas: canvas, antialias: true, alpha: true});
 renderer.setSize(width, height);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFShadowMap;
 
 
 // Create mouse Controls
@@ -31,29 +33,91 @@ controls.target.set(1.61, 0.25, 0.25);
 
 
 // Create lights
-const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
-scene.add(directionalLight);
+const ambient = new THREE.AmbientLight(0x444444);
+scene.add(ambient);
 
+const spot = new THREE.SpotLight(0xffffff, 1, 0, Math.PI / 5, 0.3);
+spot.position.set(5, 3, 1);
 
-// Create bounds meshes
+spot.castShadow = true;
+spot.shadow.camera.far = 15;
+
+spot.shadow.mapSize.width = 1024;
+spot.shadow.mapSize.height = 1024;
+scene.add(spot);
+// scene.add(new THREE.CameraHelper(spot.shadow.camera));
+
+// Create obstacle mesh
 const box = new THREE.Mesh(
   new THREE.BoxGeometry(0.16, 0.4, 0.16),
-  new THREE.MeshBasicMaterial()
+  new THREE.MeshStandardMaterial()
 );
-box.position.x = 2.47
-box.position.y = 0.5
-box.position.z = 0.08
+box.position.x = 2.47;
+box.position.y = 0.5;
+box.position.z = 0.08;
+box.castShadow = true;
+box.receiveShadow = false;
 scene.add(box);
 
-const boundaries = new THREE.Mesh(
-    new THREE.BoxGeometry(3.22, 1., 1.),
-    new THREE.MeshBasicMaterial()
+// Create bounds meshes
+const floor = new THREE.Mesh(
+  new THREE.PlaneBufferGeometry(3.22, 1.),
+  new THREE.MeshStandardMaterial()
 );
-boundaries.material.side = THREE.BackSide;
-boundaries.position.x = 1.61
-boundaries.position.y = 0.5
-boundaries.position.z = 0.5
-scene.add(boundaries);
+floor.position.x = 1.61;
+floor.position.y = 0.5;
+floor.position.z = 0.0;
+floor.castShadow = false;
+floor.receiveShadow = true;
+scene.add(floor);
+
+const wall1 = new THREE.Mesh(
+  new THREE.PlaneBufferGeometry(3.22, 1.),
+  new THREE.MeshStandardMaterial()
+);
+wall1.position.x = 1.61;
+wall1.position.y = 1.;
+wall1.position.z = 0.5;
+wall1.rotateX(Math.PI / 2.);
+wall1.castShadow = false;
+wall1.receiveShadow = true;
+scene.add(wall1);
+
+const wall2 = new THREE.Mesh(
+  new THREE.PlaneBufferGeometry(3.22, 1.),
+  new THREE.MeshStandardMaterial()
+);
+wall2.position.x = 1.61;
+wall2.position.y = 0.0;
+wall2.position.z = 0.5;
+wall2.rotateX(- Math.PI / 2.);
+wall2.castShadow = false;
+wall2.receiveShadow = true;
+scene.add(wall2);
+
+const wall3 = new THREE.Mesh(
+  new THREE.PlaneBufferGeometry(1., 1.),
+  new THREE.MeshStandardMaterial()
+);
+wall3.position.x = 0.0;
+wall3.position.y = 0.5;
+wall3.position.z = 0.5;
+wall3.rotateY(Math.PI / 2.);
+wall3.castShadow = false;
+wall3.receiveShadow = true;
+scene.add(wall3);
+
+const wall4 = new THREE.Mesh(
+  new THREE.PlaneBufferGeometry(1., 1.),
+  new THREE.MeshStandardMaterial()
+);
+wall4.position.x = 3.22;
+wall4.position.y = 0.5;
+wall4.position.z = 0.5;
+wall4.rotateY(- Math.PI / 2.);
+wall4.castShadow = false;
+wall4.receiveShadow = true;
+scene.add(wall4);
 
 
 // Function that fetches the buffers (vertices/triangle indices)
@@ -91,6 +155,8 @@ Promise.all([fetchArray('/data/vertices32_25.bin', Float32Array), fetchArray('/d
   material.opacity = 0.7;
 
   const mesh = new THREE.Mesh(geometry, material);
+  box.castShadow = true;
+  box.receiveShadow = false;
 
   scene.add(mesh);
 });
