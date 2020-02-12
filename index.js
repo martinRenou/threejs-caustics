@@ -37,16 +37,13 @@ controls.target.set(1.61, 0.25, 0.25);
 const ambient = new THREE.AmbientLight(0x444444);
 scene.add(ambient);
 
-const spot = new THREE.SpotLight(0xffffff, 1, 0, Math.PI / 5, 0.3);
-spot.position.set(5, 3, 1);
+var light = new THREE.DirectionalLight(0xffffff, 1, 100);
+light.position.set(0.1, 0.5, 1);
+light.castShadow = true;
+light.shadow.mapSize.width = 1024;
+light.shadow.mapSize.height = 1024;
 
-spot.castShadow = true;
-spot.shadow.camera.far = 15;
-
-spot.shadow.mapSize.width = 1024;
-spot.shadow.mapSize.height = 1024;
-scene.add(spot);
-// scene.add(new THREE.CameraHelper(spot.shadow.camera));
+scene.add(light);
 
 // Create obstacle mesh
 const box = new THREE.Mesh(
