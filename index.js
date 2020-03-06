@@ -7,6 +7,7 @@ const height = canvas.height;
 
 // Create Scene and Renderer
 const scene = new THREE.Scene();
+scene.background = new THREE.Color('black');
 const camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
 camera.position.set(1.682, 3.130, 1.102);
 camera.rotation.set(-1.283, 0.024, 3.104);
@@ -38,13 +39,90 @@ controls.target.set(1.61, 0.25, 0.25);
 const ambient = new THREE.AmbientLight(0x444444);
 scene.add(ambient);
 
-var light = new THREE.DirectionalLight(0xffffff, 1, 100);
-light.position.set(0.1, 0.5, 1);
+const lightDirection = new THREE.Vector3(0.1, 0.5, 1);
+const light = new THREE.DirectionalLight(0xffffff, 1, 100);
+light.position.set(lightDirection.x, lightDirection.y, lightDirection.z);
 light.castShadow = true;
 light.shadow.mapSize.width = 1024;
 light.shadow.mapSize.height = 1024;
 
 scene.add(light);
+
+// Light front geometry (used for caustics)
+const lightFront = new THREE.PlaneBufferGeometry(3.22, 1., 64, 32);
+const offset = new THREE.Vector3(1.61, 0.5, 1.);
+
+const N_AIR = 1.000277;
+const N_WATER = 1.333;
+
+const raycaster = new THREE.Raycaster();
+const raycastDirection = new THREE.Vector3(-lightDirection.x, -lightDirection.y, -lightDirection.z);
+const lfIndexArray = lightFront.getIndex().array;
+const lfVertexArray = lightFront.getAttribute('position').array;
+
+// For debugging purpose
+const lightFrontHelper = new THREE.Mesh(
+  lightFront,
+  new THREE.MeshBasicMaterial()
+);
+lightFrontHelper.position.x = offset.x;
+lightFrontHelper.position.y = offset.y;
+lightFrontHelper.position.z = offset.z;
+lightFrontHelper.material.wireframe = true;
+scene.add(lightFrontHelper);
+
+function intersect(point, direction, object) {
+  raycaster.set(point, direction);
+
+  return raycaster.intersectObject(object, false);
+}
+
+function computeCausticMesh(waterGeometry, floorGeometry) {
+  for (let idx = 0; idx < lfIndexArray.length / 3; idx += 3) {
+    const triangle = [lfIndexArray[idx], lfIndexArray[idx + 1], lfIndexArray[idx + 2]];
+
+    const v1Index = 3 * triangle[0];
+    const v2Index = 3 * triangle[1];
+    const v3Index = 3 * triangle[2];
+
+    // Get the three vertices
+    const v1 = new THREE.Vector3(
+      lfVertexArray[v1Index] + offset.x,
+      lfVertexArray[v1Index + 1] + offset.y,
+      lfVertexArray[v1Index + 2] + offset.z
+    );
+    const v2 = new THREE.Vector3(
+      lfVertexArray[v2Index] + offset.x,
+      lfVertexArray[v2Index + 1] + offset.y,
+      lfVertexArray[v1Index + 2] + offset.z
+    );
+    const v3 = new THREE.Vector3(
+      lfVertexArray[v3Index] + offset.x,
+      lfVertexArray[v3Index + 1] + offset.y,
+      lfVertexArray[v1Index + 2] + offset.z
+    );
+
+    const inter1 = intersect(v1, raycastDirection, waterGeometry);
+    if (!inter1.length) continue;
+
+    const inter2 = intersect(v2, raycastDirection, waterGeometry);
+    if (!inter2.length) continue;
+
+    const inter3 = intersect(v3, raycastDirection, waterGeometry);
+    if (!inter3.length) continue;
+
+    // TODO Compute refraction
+
+    const inter4 = intersect(v1, raycastDirection, floorGeometry);
+    if (!inter4.length) continue;
+
+    const inter5 = intersect(v2, raycastDirection, floorGeometry);
+    if (!inter5.length) continue;
+
+    const inter6 = intersect(v3, raycastDirection, floorGeometry);
+    if (!inter6.length) continue;
+  }
+}
 
 
 // Create obstacle mesh
@@ -178,6 +256,8 @@ Promise.all(geometryPromises).then(() => {
   box.receiveShadow = false;
 
   scene.add(mesh);
+
+  // computeCausticMesh(mesh, floor);
 
   animate();
 });
