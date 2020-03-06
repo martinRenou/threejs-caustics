@@ -1,5 +1,4 @@
 const canvas = document.getElementById('canvas');
-const progress = document.getElementById('progress');
 
 const width = canvas.width;
 const height = canvas.height;
@@ -43,8 +42,82 @@ const textureCube = cubetextureloader.load([
 // const material = new THREE.MeshBasicMaterial( { color: 0xffffff, envMap: textureCube } );
 
 
+function loadFile(filename) {
+  return new Promise((resolve, reject) => {
+    const loader = new THREE.FileLoader();
+
+    loader.load(filename, (data) => {
+      resolve(data);
+    });
+  });
+}
+
+
+class Water {
+
+  constructor() {
+    this.geometry = new THREE.PlaneBufferGeometry();
+
+    this.textureA = new THREE.WebGLRenderTarget(256, 256, {type: THREE.FloatType});
+    this.textureB = new THREE.WebGLRenderTarget(256, 256, {type: THREE.FloatType});
+
+    const shadersPromises = [
+      loadFile('shaders/water_vertexshader.glsl'),
+      loadFile('shaders/water_drop_fragmentshader.glsl'),
+      loadFile('shaders/water_normal_fragmentshader.glsl'),
+      loadFile('shaders/water_update_fragmentshader.glsl'),
+    ];
+
+    this.loaded = Promise.all(shadersPromises)
+        .then(([vertexShader, dropFragmentShader, normalFragmentShader, updateFragmentShader]) => {
+      this.dropMaterial = new THREE.RawShaderMaterial({
+        uniforms: {
+            center: { value: [0, 0] },
+            radius: { value: 0 },
+            strength: { value: 0 }
+        },
+        vertexShader: vertexShader,
+        fragmentShader: dropFragmentShader,
+      });
+
+      this.normalMaterial = new THREE.RawShaderMaterial({
+        uniforms: {
+            delta: { value: [1 / 256, 1 / 256] },  // TODO: Remove this useless uniform?
+        },
+        vertexShader: vertexShader,
+        fragmentShader: normalFragmentShader,
+      });
+
+      this.updateMaterial = new THREE.RawShaderMaterial({
+        uniforms: {
+            delta: { value: [1 / 256, 1 / 256] },  // TODO: Remove this useless uniform?
+        },
+        vertexShader: vertexShader,
+        fragmentShader: updateFragmentShader,
+      });
+    });
+  }
+
+  addDrop(x, y, radius, strength) {
+
+  }
+
+  stepSimulation() {
+
+  }
+
+}
+
+const water = new Water();
+
+// Main Clock for simulation
+// const clock = new THREE.Clock();
+
+
 // Main rendering loop
 function animate() {
+  // const elapsedTime = clock.getDelta();
+
   renderer.render(scene, camera);
 
   controls.update();
