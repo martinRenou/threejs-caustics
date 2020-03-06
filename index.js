@@ -30,6 +30,19 @@ controls.zoomSpeed = 1.2;
 controls.panSpeed = 0.9;
 controls.dynamicDampingFactor = 0.9;
 
+// Cube map
+const cubetextureloader = new THREE.CubeTextureLoader();
+
+const textureCube = cubetextureloader.load([
+  'xpos.jpg', 'xneg.jpg',
+  'ypos.jpg', 'ypos.jpg',
+  'zpos.jpg', 'zneg.jpg',
+]);
+
+// Usage:
+// const material = new THREE.MeshBasicMaterial( { color: 0xffffff, envMap: textureCube } );
+
+
 // Main rendering loop
 function animate() {
   renderer.render(scene, camera);
