@@ -56,10 +56,11 @@ function loadFile(filename) {
 class Water {
 
   constructor() {
-    this.geometry = new THREE.PlaneBufferGeometry();
+    this._geometry = new THREE.PlaneBufferGeometry();
 
-    this.textureA = new THREE.WebGLRenderTarget(256, 256, {type: THREE.FloatType});
-    this.textureB = new THREE.WebGLRenderTarget(256, 256, {type: THREE.FloatType});
+    this._textureA = new THREE.WebGLRenderTarget(256, 256, {type: THREE.FloatType});
+    this._textureB = new THREE.WebGLRenderTarget(256, 256, {type: THREE.FloatType});
+    this.texture = this._textureA;
 
     const shadersPromises = [
       loadFile('shaders/water_vertexshader.glsl'),
@@ -70,40 +71,66 @@ class Water {
 
     this.loaded = Promise.all(shadersPromises)
         .then(([vertexShader, dropFragmentShader, normalFragmentShader, updateFragmentShader]) => {
-      this.dropMaterial = new THREE.RawShaderMaterial({
+      const dropMaterial = new THREE.RawShaderMaterial({
         uniforms: {
             center: { value: [0, 0] },
             radius: { value: 0 },
-            strength: { value: 0 }
+            strength: { value: 0 },
+            texture: { value: null },
         },
         vertexShader: vertexShader,
         fragmentShader: dropFragmentShader,
       });
 
-      this.normalMaterial = new THREE.RawShaderMaterial({
+      const normalMaterial = new THREE.RawShaderMaterial({
         uniforms: {
-            delta: { value: [1 / 256, 1 / 256] },  // TODO: Remove this useless uniform?
+            delta: { value: [1 / 256, 1 / 256] },  // TODO: Remove this useless uniform and hardcode it in shaders?
+            texture: { value: null },
         },
         vertexShader: vertexShader,
         fragmentShader: normalFragmentShader,
       });
 
-      this.updateMaterial = new THREE.RawShaderMaterial({
+      const updateMaterial = new THREE.RawShaderMaterial({
         uniforms: {
-            delta: { value: [1 / 256, 1 / 256] },  // TODO: Remove this useless uniform?
+            delta: { value: [1 / 256, 1 / 256] },  // TODO: Remove this useless uniform and hardcode it in shaders?
+            texture: { value: null },
         },
         vertexShader: vertexShader,
         fragmentShader: updateFragmentShader,
       });
+
+      this._dropMesh = new THREE.Mesh(this._geometry, dropMaterial);
+      this._updateMesh = new THREE.Mesh(this._geometry, updateMaterial);
+      this._normalMesh = new THREE.Mesh(this._geometry, normalMaterial);
     });
   }
 
-  addDrop(x, y, radius, strength) {
+  addDrop(renderer, x, y, radius, strength) {
+    this._dropMesh.material.uniforms['center'].value = [x, y];
+    this._dropMesh.material.uniforms['radius'].value = radius;
+    this._dropMesh.material.uniforms['strength'].value = strength;
 
+    this._render(renderer, this._dropMesh);
   }
 
-  stepSimulation() {
+  stepSimulation(renderer) {
+    this._render(renderer, this._updateMesh);
+  }
 
+  _render(renderer, mesh) {
+    // Swap textures
+    const oldTexture = this.texture;
+    const newTexture = this.texture === this._textureA ? this._textureB : this._textureA;
+
+    mesh.material.uniforms['texture'].value = oldTexture;
+
+    renderer.setRenderTarget(newTexture);
+
+    // TODO Camera is useless here, what should be done?
+    renderer.render(mesh, camera);
+
+    this.texture = newTexture;
   }
 
 }
@@ -118,6 +145,9 @@ const water = new Water();
 function animate() {
   // const elapsedTime = clock.getDelta();
 
+  water.stepSimulation(renderer);
+
+  renderer.setRenderTarget(null);
   renderer.render(scene, camera);
 
   controls.update();
@@ -125,4 +155,7 @@ function animate() {
   window.requestAnimationFrame(animate);
 }
 
-animate();
+water.loaded.then(() => {
+  animate();
+});
+

@@ -1,3 +1,6 @@
+precision highp float;
+precision highp int;
+
 uniform sampler2D texture;
 uniform vec2 delta;
 varying vec2 coord;

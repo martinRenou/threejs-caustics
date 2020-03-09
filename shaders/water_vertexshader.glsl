@@ -1,8 +1,9 @@
+attribute vec3 position;
 varying vec2 coord;
 
 
 void main() {
-  coord = gl_Vertex.xy;
+  coord = position.xy;
 
-  gl_Position = vec4(gl_Vertex.xyz + 0.5, 1.0);
+  gl_Position = vec4(position.xyz + 0.5, 1.0);
 }
