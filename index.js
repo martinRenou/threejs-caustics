@@ -3,6 +3,13 @@ const canvas = document.getElementById('canvas');
 const width = canvas.width;
 const height = canvas.height;
 
+// Colors
+const black = new THREE.Color('black');
+
+// Shader chunks
+loadFile('shaders/utils.glsl').then((utils) => {
+  THREE.ShaderChunk['utils'] = utils;
+});
 
 // Create Scene and Renderer
 const scene = new THREE.Scene();
@@ -138,7 +145,53 @@ class WaterSimulation {
 
 }
 
-const water = new WaterSimulation();
+
+class Caustics {
+
+  constructor(lightFrontGeometry) {
+    this._camera = new THREE.OrthographicCamera(0, 1, 1, 0, 0, 1);
+
+    this._geometry = lightFrontGeometry;
+
+    this.texture = new THREE.WebGLRenderTarget(256, 256, {type: THREE.FloatType});
+
+    const shadersPromises = [
+      loadFile('shaders/caustics/caustics_vertex.glsl'),
+      loadFile('shaders/caustics/caustics_fragment.glsl')
+    ];
+
+    this.loaded = Promise.all(shadersPromises)
+        .then(([vertexShader, fragmentShader]) => {
+      const material = new THREE.RawShaderMaterial({
+        uniforms: {
+            light: { value: [2, 2, -1] },
+            water: { value: null },
+        },
+        vertexShader: vertexShader,
+        fragmentShader: fragmentShader,
+      });
+
+      this._causticMesh = new THREE.Mesh(this._geometry, material);
+    });
+  }
+
+  update(renderer, waterTexture) {
+    this._causticMesh.material.uniforms['water'].value = waterTexture;
+
+    renderer.setRenderTarget(this.texture);
+    renderer.setClearColor(black, 0);
+    renderer.clear();
+
+    // TODO Camera is useless here, what should be done?
+    renderer.render(this._causticMesh, this._camera);
+  }
+
+}
+
+const waterGeometry = new THREE.PlaneBufferGeometry(1, 1, 200, 200);
+
+const waterSimulation = new WaterSimulation();
+const caustics = new Caustics(waterGeometry);
 
 // Main Clock for simulation
 // const clock = new THREE.Clock();
@@ -148,7 +201,8 @@ const water = new WaterSimulation();
 function animate() {
   // const elapsedTime = clock.getDelta();
 
-  water.stepSimulation(renderer);
+  waterSimulation.stepSimulation(renderer);
+  caustics.update(renderer, waterSimulation.texture.texture);
 
   renderer.setRenderTarget(null);
   renderer.render(scene, camera);
@@ -158,9 +212,9 @@ function animate() {
   window.requestAnimationFrame(animate);
 }
 
-water.loaded.then(() => {
+Promise.all([waterSimulation.loaded, caustics.loaded]).then(() => {
   for (var i = 0; i < 20; i++) {
-    water.addDrop(
+    waterSimulation.addDrop(
       renderer,
       Math.random() * 2 - 1, Math.random() * 2 - 1,
       0.03, (i & 1) ? 0.01 : -0.01
