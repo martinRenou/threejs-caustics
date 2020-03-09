@@ -65,10 +65,10 @@ class WaterSimulation {
     this.texture = this._textureA;
 
     const shadersPromises = [
-      loadFile('shaders/simulation/water_vertexshader.glsl'),
-      loadFile('shaders/simulation/water_drop_fragmentshader.glsl'),
-      loadFile('shaders/simulation/water_normal_fragmentshader.glsl'),
-      loadFile('shaders/simulation/water_update_fragmentshader.glsl'),
+      loadFile('shaders/simulation/water_vertex.glsl'),
+      loadFile('shaders/simulation/water_drop_fragment.glsl'),
+      loadFile('shaders/simulation/water_normal_fragment.glsl'),
+      loadFile('shaders/simulation/water_update_fragment.glsl'),
     ];
 
     this.loaded = Promise.all(shadersPromises)
