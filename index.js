@@ -56,6 +56,8 @@ function loadFile(filename) {
 class Water {
 
   constructor() {
+    this._camera = new THREE.OrthographicCamera(0, 1, 1, 0, 0, 1);
+
     this._geometry = new THREE.PlaneBufferGeometry();
 
     this._textureA = new THREE.WebGLRenderTarget(256, 256, {type: THREE.FloatType});
@@ -106,6 +108,7 @@ class Water {
     });
   }
 
+  // Add a drop of water at the (x, y) coordinate (in the range [-1, 1])
   addDrop(renderer, x, y, radius, strength) {
     this._dropMesh.material.uniforms['center'].value = [x, y];
     this._dropMesh.material.uniforms['radius'].value = radius;
@@ -123,12 +126,12 @@ class Water {
     const oldTexture = this.texture;
     const newTexture = this.texture === this._textureA ? this._textureB : this._textureA;
 
-    mesh.material.uniforms['texture'].value = oldTexture;
+    mesh.material.uniforms['texture'].value = oldTexture.texture;
 
     renderer.setRenderTarget(newTexture);
 
     // TODO Camera is useless here, what should be done?
-    renderer.render(mesh, camera);
+    renderer.render(mesh, this._camera);
 
     this.texture = newTexture;
   }
@@ -156,6 +159,13 @@ function animate() {
 }
 
 water.loaded.then(() => {
+  for (var i = 0; i < 20; i++) {
+    water.addDrop(
+      renderer,
+      Math.random() * 2 - 1, Math.random() * 2 - 1,
+      0.03, (i & 1) ? 0.01 : -0.01
+    );
+  }
+
   animate();
 });
-
