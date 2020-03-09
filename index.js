@@ -53,7 +53,7 @@ function loadFile(filename) {
 }
 
 
-class Water {
+class WaterSimulation {
 
   constructor() {
     this._camera = new THREE.OrthographicCamera(0, 1, 1, 0, 0, 1);
@@ -65,10 +65,10 @@ class Water {
     this.texture = this._textureA;
 
     const shadersPromises = [
-      loadFile('shaders/water_vertexshader.glsl'),
-      loadFile('shaders/water_drop_fragmentshader.glsl'),
-      loadFile('shaders/water_normal_fragmentshader.glsl'),
-      loadFile('shaders/water_update_fragmentshader.glsl'),
+      loadFile('shaders/simulation/water_vertexshader.glsl'),
+      loadFile('shaders/simulation/water_drop_fragmentshader.glsl'),
+      loadFile('shaders/simulation/water_normal_fragmentshader.glsl'),
+      loadFile('shaders/simulation/water_update_fragmentshader.glsl'),
     ];
 
     this.loaded = Promise.all(shadersPromises)
@@ -138,7 +138,7 @@ class Water {
 
 }
 
-const water = new Water();
+const water = new WaterSimulation();
 
 // Main Clock for simulation
 // const clock = new THREE.Clock();
