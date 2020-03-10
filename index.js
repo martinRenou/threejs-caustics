@@ -68,7 +68,7 @@ function loadFile(filename) {
 class WaterSimulation {
 
   constructor() {
-    this._camera = new THREE.OrthographicCamera(0, 1, 1, 0, 0, 1);
+    this._camera = new THREE.OrthographicCamera(0, 1, 1, 0, 0, 2000);
 
     this._geometry = new THREE.PlaneBufferGeometry(2, 2);
 
@@ -115,8 +115,8 @@ class WaterSimulation {
       });
 
       this._dropMesh = new THREE.Mesh(this._geometry, dropMaterial);
-      this._updateMesh = new THREE.Mesh(this._geometry, updateMaterial);
       this._normalMesh = new THREE.Mesh(this._geometry, normalMaterial);
+      this._updateMesh = new THREE.Mesh(this._geometry, updateMaterial);
     });
   }
 
@@ -158,7 +158,7 @@ class WaterSimulation {
 class Caustics {
 
   constructor(lightFrontGeometry) {
-    this._camera = new THREE.OrthographicCamera(0, 1, 1, 0, 0, 1);
+    this._camera = new THREE.OrthographicCamera(0, 1, 1, 0, 0, 2000);
 
     this._geometry = lightFrontGeometry;
 
@@ -242,9 +242,46 @@ class Water {
 
 }
 
+
+class Debug {
+
+  constructor() {
+    this._camera = new THREE.OrthographicCamera(0, 1, 1, 0, 0, 1);
+    this._geometry = new THREE.PlaneBufferGeometry();
+
+    const shadersPromises = [
+      loadFile('shaders/debug/vertex.glsl'),
+      loadFile('shaders/debug/fragment.glsl')
+    ];
+
+    this.loaded = Promise.all(shadersPromises)
+        .then(([vertexShader, fragmentShader]) => {
+      this._material = new THREE.RawShaderMaterial({
+        uniforms: {
+            texture: { value: null },
+        },
+        vertexShader: vertexShader,
+        fragmentShader: fragmentShader,
+      });
+
+      this._mesh = new THREE.Mesh(this._geometry, this._material);
+    });
+  }
+
+  draw(renderer, texture) {
+    this._material.uniforms['texture'].value = texture;
+
+    renderer.setRenderTarget(null);
+    renderer.render(this._mesh, this._camera);
+  }
+
+}
+
 const waterSimulation = new WaterSimulation();
 const water = new Water();
 const caustics = new Caustics(water.geometry);
+
+const debug = new Debug();
 
 // Main Clock for simulation
 // const clock = new THREE.Clock();
@@ -257,7 +294,10 @@ function animate() {
   waterSimulation.stepSimulation(renderer);
   waterSimulation.stepSimulation(renderer);
   waterSimulation.updateNormals(renderer);
+
   caustics.update(renderer, waterSimulation.texture.texture);
+
+  // debug.draw(renderer, caustics.texture.texture);
 
   renderer.setRenderTarget(null);
   renderer.setClearColor(black, 1);
@@ -270,7 +310,7 @@ function animate() {
   window.requestAnimationFrame(animate);
 }
 
-Promise.all([waterSimulation.loaded, caustics.loaded, water.loaded]).then(() => {
+Promise.all([waterSimulation.loaded, caustics.loaded, water.loaded, debug.loaded]).then(() => {
   for (var i = 0; i < 20; i++) {
     waterSimulation.addDrop(
       renderer,
