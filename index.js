@@ -19,6 +19,7 @@ camera.position.set(1, 1, 1);
 
 const renderer = new THREE.WebGLRenderer({canvas: canvas, antialias: true, alpha: true});
 renderer.setSize(width, height);
+renderer.autoClear = false;
 
 // Light direction
 const light = [0.7559289460184544, 0.7559289460184544, -0.3779644730092272];
@@ -320,14 +321,9 @@ const pool = new Pool();
 
 const debug = new Debug();
 
-// Main Clock for simulation
-// const clock = new THREE.Clock();
-
 
 // Main rendering loop
 function animate() {
-  // const elapsedTime = clock.getDelta();
-
   waterSimulation.stepSimulation(renderer);
   waterSimulation.stepSimulation(renderer);
   waterSimulation.updateNormals(renderer);
