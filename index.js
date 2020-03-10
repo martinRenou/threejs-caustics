@@ -14,13 +14,16 @@ loadFile('shaders/utils.glsl').then((utils) => {
 // Create Scene and Renderer
 const scene = new THREE.Scene();
 scene.background = new THREE.Color('black');
-const camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
+const camera = new THREE.PerspectiveCamera(75, width / height, 0.01, 100);
 camera.position.set(1.682, 3.130, 1.102);
 camera.rotation.set(-1.283, 0.024, 3.104);
 camera.up.set(0, -1, 0);
 
 const renderer = new THREE.WebGLRenderer({canvas: canvas, antialias: true, alpha: true});
 renderer.setSize(width, height);
+
+// Light direction
+const light = [0.7559289460184544, 0.7559289460184544, -0.3779644730092272];
 
 // Create mouse Controls
 const controls = new THREE.TrackballControls(
@@ -36,7 +39,7 @@ controls.zoomSpeed = 1.2;
 controls.panSpeed = 0.9;
 controls.dynamicDampingFactor = 0.9;
 
-// Cube map
+// Textures
 const cubetextureloader = new THREE.CubeTextureLoader();
 
 const textureCube = cubetextureloader.load([
@@ -44,6 +47,10 @@ const textureCube = cubetextureloader.load([
   'ypos.jpg', 'ypos.jpg',
   'zpos.jpg', 'zneg.jpg',
 ]);
+
+const textureloader = new THREE.TextureLoader();
+
+const tiles = textureloader.load('tiles.jpg');
 
 // Usage:
 // const material = new THREE.MeshBasicMaterial( { color: 0xffffff, envMap: textureCube } );
@@ -164,7 +171,7 @@ class Caustics {
         .then(([vertexShader, fragmentShader]) => {
       const material = new THREE.RawShaderMaterial({
         uniforms: {
-            light: { value: [2, 2, -1] },
+            light: { value: light },
             water: { value: null },
         },
         vertexShader: vertexShader,
@@ -188,10 +195,57 @@ class Caustics {
 
 }
 
+
+class Water {
+
+  constructor() {
+    this.geometry = new THREE.PlaneBufferGeometry(1, 1, 200, 200);
+
+    const shadersPromises = [
+      loadFile('shaders/water/water_vertex.glsl'),
+      loadFile('shaders/water/water_fragment.glsl')
+    ];
+
+    this.loaded = Promise.all(shadersPromises)
+        .then(([vertexShader, fragmentShader]) => {
+      this.material = new THREE.ShaderMaterial({
+        uniforms: {
+            light: { value: light },
+            tiles: { value: tiles },
+            sky: { value: textureCube },
+            water: { value: null },
+            causticTex: { value: null },
+            underwater: { value: false },
+        },
+        vertexShader: vertexShader,
+        fragmentShader: fragmentShader,
+      });
+
+      this.mesh = new THREE.Mesh(this.geometry, this.material);
+      console.log(this.material);
+    });
+  }
+
+  draw(renderer, waterTexture, causticsTexture) {
+    this.material.uniforms['water'].value = waterTexture;
+    this.material.uniforms['causticTex'].value = causticsTexture;
+
+    this.material.side = THREE.FrontSide;
+    this.material.uniforms['underwater'].value = false;
+    renderer.render(this.mesh, camera);
+
+    this.material.side = THREE.BackSide;
+    this.material.uniforms['underwater'].value = true;
+    renderer.render(this.mesh, camera);
+  }
+
+}
+
 const waterGeometry = new THREE.PlaneBufferGeometry(1, 1, 200, 200);
 
 const waterSimulation = new WaterSimulation();
 const caustics = new Caustics(waterGeometry);
+const water = new Water();
 
 // Main Clock for simulation
 // const clock = new THREE.Clock();
@@ -205,14 +259,17 @@ function animate() {
   caustics.update(renderer, waterSimulation.texture.texture);
 
   renderer.setRenderTarget(null);
-  renderer.render(scene, camera);
+  renderer.setClearColor(black, 1);
+  renderer.clear();
+
+  water.draw(renderer, waterSimulation.texture.texture, caustics.texture.texture);
 
   controls.update();
 
   window.requestAnimationFrame(animate);
 }
 
-Promise.all([waterSimulation.loaded, caustics.loaded]).then(() => {
+Promise.all([waterSimulation.loaded, caustics.loaded, water.loaded]).then(() => {
   for (var i = 0; i < 20; i++) {
     waterSimulation.addDrop(
       renderer,
