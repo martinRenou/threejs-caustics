@@ -243,6 +243,42 @@ class Water {
 }
 
 
+class Pool {
+
+  constructor() {
+    // TODO Remove top of the cube
+    this._geometry = new THREE.BoxBufferGeometry(2, 2, 2);
+
+    const shadersPromises = [
+      loadFile('shaders/pool/vertex.glsl'),
+      loadFile('shaders/pool/fragment.glsl')
+    ];
+
+    this.loaded = Promise.all(shadersPromises)
+        .then(([vertexShader, fragmentShader]) => {
+      this._material = new THREE.ShaderMaterial({
+        uniforms: {
+            light: { value: light },
+            tiles: { value: tiles },
+            water: { value: null },
+            causticTex: { value: null },
+        },
+        vertexShader: vertexShader,
+        fragmentShader: fragmentShader,
+      });
+      this._material.side = THREE.FrontSide;
+
+      this._mesh = new THREE.Mesh(this._geometry, this._material);
+    });
+  }
+
+  draw(renderer, waterTexture, causticsTexture) {
+    renderer.render(this._mesh, camera);
+  }
+
+}
+
+
 class Debug {
 
   constructor() {
@@ -280,6 +316,7 @@ class Debug {
 const waterSimulation = new WaterSimulation();
 const water = new Water();
 const caustics = new Caustics(water.geometry);
+const pool = new Pool();
 
 const debug = new Debug();
 
@@ -295,7 +332,11 @@ function animate() {
   waterSimulation.stepSimulation(renderer);
   waterSimulation.updateNormals(renderer);
 
-  caustics.update(renderer, waterSimulation.texture.texture);
+  const waterTexture = waterSimulation.texture.texture;
+
+  caustics.update(renderer, waterTexture);
+
+  const causticsTexture = caustics.texture.texture;
 
   // debug.draw(renderer, caustics.texture.texture);
 
@@ -303,14 +344,17 @@ function animate() {
   renderer.setClearColor(black, 1);
   renderer.clear();
 
-  water.draw(renderer, waterSimulation.texture.texture, caustics.texture.texture);
+  water.draw(renderer, waterTexture, causticsTexture);
+  pool.draw(renderer, waterTexture, causticsTexture);
 
   controls.update();
 
   window.requestAnimationFrame(animate);
 }
 
-Promise.all([waterSimulation.loaded, caustics.loaded, water.loaded, debug.loaded]).then(() => {
+const loaded = [waterSimulation.loaded, caustics.loaded, water.loaded, pool.loaded, debug.loaded];
+
+Promise.all(loaded).then(() => {
   for (var i = 0; i < 20; i++) {
     waterSimulation.addDrop(
       renderer,
