@@ -160,7 +160,7 @@ class Caustics {
 
     this._geometry = lightFrontGeometry;
 
-    this.texture = new THREE.WebGLRenderTarget(256, 256, {type: THREE.FloatType});
+    this.texture = new THREE.WebGLRenderTarget(1024, 1024, {type: THREE.UNSIGNED_BYTE});
 
     const shadersPromises = [
       loadFile('shaders/caustics/caustics_vertex.glsl'),
@@ -274,7 +274,7 @@ Promise.all([waterSimulation.loaded, caustics.loaded, water.loaded]).then(() => 
     waterSimulation.addDrop(
       renderer,
       Math.random() * 2 - 1, Math.random() * 2 - 1,
-      0.03, (i & 1) ? 0.01 : -0.01
+      0.03, (i & 1) ? 0.02 : -0.02
     );
   }
 
