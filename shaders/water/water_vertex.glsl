@@ -8,10 +8,10 @@ void main() {
   pos = position.xzy;
   pos.y += info.r;
 
-  vec3 axis_x = vec3(modelViewMatrix[0].x, modelViewMatrix[1].x, modelViewMatrix[2].x);
-  vec3 axis_y = vec3(modelViewMatrix[0].y, modelViewMatrix[1].y, modelViewMatrix[2].y);
-  vec3 axis_z = vec3(modelViewMatrix[0].z, modelViewMatrix[1].z, modelViewMatrix[2].z);
-  vec3 offset = vec3(modelViewMatrix[0].w, modelViewMatrix[1].w, modelViewMatrix[2].w);
+  vec3 axis_x = vec3(modelViewMatrix[0].x, modelViewMatrix[0].y, modelViewMatrix[0].z);
+  vec3 axis_y = vec3(modelViewMatrix[1].x, modelViewMatrix[1].y, modelViewMatrix[1].z);
+  vec3 axis_z = vec3(modelViewMatrix[2].x, modelViewMatrix[2].y, modelViewMatrix[2].z);
+  vec3 offset = vec3(modelViewMatrix[3].x, modelViewMatrix[3].y, modelViewMatrix[3].z);
 
   eye = vec3(dot(-offset, axis_x), dot(-offset, axis_y), dot(-offset, axis_z));
 

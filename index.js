@@ -233,11 +233,11 @@ class Water {
     this.material.uniforms['causticTex'].value = causticsTexture;
 
     this.material.side = THREE.FrontSide;
-    this.material.uniforms['underwater'].value = false;
+    this.material.uniforms['underwater'].value = true;
     renderer.render(this.mesh, camera);
 
     this.material.side = THREE.BackSide;
-    this.material.uniforms['underwater'].value = true;
+    this.material.uniforms['underwater'].value = false;
     renderer.render(this.mesh, camera);
   }
 
