@@ -133,6 +133,10 @@ class WaterSimulation {
     this._render(renderer, this._updateMesh);
   }
 
+  updateNormals(renderer) {
+    this._render(renderer, this._normalMesh);
+  }
+
   _render(renderer, mesh) {
     // Swap textures
     const oldTexture = this.texture;
@@ -251,6 +255,8 @@ function animate() {
   // const elapsedTime = clock.getDelta();
 
   waterSimulation.stepSimulation(renderer);
+  waterSimulation.stepSimulation(renderer);
+  waterSimulation.updateNormals(renderer);
   caustics.update(renderer, waterSimulation.texture.texture);
 
   renderer.setRenderTarget(null);
