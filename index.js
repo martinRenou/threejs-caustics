@@ -15,9 +15,7 @@ loadFile('shaders/utils.glsl').then((utils) => {
 const scene = new THREE.Scene();
 scene.background = new THREE.Color('black');
 const camera = new THREE.PerspectiveCamera(75, width / height, 0.01, 100);
-camera.position.set(1.682, 3.130, 1.102);
-camera.rotation.set(-1.283, 0.024, 3.104);
-camera.up.set(0, -1, 0);
+camera.position.set(1, 1, 1);
 
 const renderer = new THREE.WebGLRenderer({canvas: canvas, antialias: true, alpha: true});
 renderer.setSize(width, height);
@@ -72,7 +70,7 @@ class WaterSimulation {
   constructor() {
     this._camera = new THREE.OrthographicCamera(0, 1, 1, 0, 0, 1);
 
-    this._geometry = new THREE.PlaneBufferGeometry();
+    this._geometry = new THREE.PlaneBufferGeometry(2, 2);
 
     this._textureA = new THREE.WebGLRenderTarget(256, 256, {type: THREE.FloatType});
     this._textureB = new THREE.WebGLRenderTarget(256, 256, {type: THREE.FloatType});
@@ -199,7 +197,7 @@ class Caustics {
 class Water {
 
   constructor() {
-    this.geometry = new THREE.PlaneBufferGeometry(1, 1, 200, 200);
+    this.geometry = new THREE.PlaneBufferGeometry(2, 2, 200, 200);
 
     const shadersPromises = [
       loadFile('shaders/water/water_vertex.glsl'),
@@ -222,7 +220,6 @@ class Water {
       });
 
       this.mesh = new THREE.Mesh(this.geometry, this.material);
-      console.log(this.material);
     });
   }
 
@@ -241,11 +238,9 @@ class Water {
 
 }
 
-const waterGeometry = new THREE.PlaneBufferGeometry(1, 1, 200, 200);
-
 const waterSimulation = new WaterSimulation();
-const caustics = new Caustics(waterGeometry);
 const water = new Water();
+const caustics = new Caustics(water.geometry);
 
 // Main Clock for simulation
 // const clock = new THREE.Clock();
