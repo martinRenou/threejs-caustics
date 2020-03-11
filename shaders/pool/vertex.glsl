@@ -1,5 +1,10 @@
 #include <utils>
 
+uniform mat4 projectionMatrix;
+uniform mat4 modelViewMatrix;
+
+attribute vec3 position;
+
 varying vec3 pos;
 
 

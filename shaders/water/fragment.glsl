@@ -1,7 +1,11 @@
+precision highp float;
+precision highp int;
+
 #include <utils>
 
 uniform float underwater;
 uniform samplerCube sky;
+
 varying vec3 eye;
 varying vec3 pos;
 

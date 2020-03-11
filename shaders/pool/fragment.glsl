@@ -1,3 +1,6 @@
+precision highp float;
+precision highp int;
+
 #include <utils>
 
 varying vec3 pos;

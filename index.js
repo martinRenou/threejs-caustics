@@ -213,7 +213,7 @@ class Water {
 
     this.loaded = Promise.all(shadersPromises)
         .then(([vertexShader, fragmentShader]) => {
-      this.material = new THREE.ShaderMaterial({
+      this.material = new THREE.RawShaderMaterial({
         uniforms: {
             light: { value: light },
             tiles: { value: tiles },
@@ -259,7 +259,7 @@ class Pool {
 
     this.loaded = Promise.all(shadersPromises)
         .then(([vertexShader, fragmentShader]) => {
-      this._material = new THREE.ShaderMaterial({
+      this._material = new THREE.RawShaderMaterial({
         uniforms: {
             light: { value: light },
             tiles: { value: tiles },
