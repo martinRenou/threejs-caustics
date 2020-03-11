@@ -40,6 +40,12 @@ controls.dynamicDampingFactor = 0.9;
 // Ray caster
 const raycaster = new THREE.Raycaster();
 const mouse = new THREE.Vector2();
+const targetgeometry = new THREE.PlaneGeometry(2, 2);
+for (let vertex of targetgeometry.vertices) {
+  vertex.z = - vertex.y;
+  vertex.y = 0.;
+}
+const targetmesh = new THREE.Mesh(targetgeometry);
 
 // Textures
 const cubetextureloader = new THREE.CubeTextureLoader();
@@ -362,10 +368,10 @@ function onMouseMove(event) {
 
   raycaster.setFromCamera(mouse, camera);
 
-  const intersects = raycaster.intersectObject(water.mesh);
+  const intersects = raycaster.intersectObject(targetmesh);
 
   for (let intersect of intersects) {
-    waterSimulation.addDrop(renderer, intersect.point.x, intersect.point.y, 0.03, 0.02);
+    waterSimulation.addDrop(renderer, intersect.point.x, intersect.point.z, 0.03, 0.02);
   }
 }
 
