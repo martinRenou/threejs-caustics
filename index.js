@@ -78,10 +78,10 @@ class WaterSimulation {
     this.texture = this._textureA;
 
     const shadersPromises = [
-      loadFile('shaders/simulation/water_vertex.glsl'),
-      loadFile('shaders/simulation/water_drop_fragment.glsl'),
-      loadFile('shaders/simulation/water_normal_fragment.glsl'),
-      loadFile('shaders/simulation/water_update_fragment.glsl'),
+      loadFile('shaders/simulation/vertex.glsl'),
+      loadFile('shaders/simulation/drop_fragment.glsl'),
+      loadFile('shaders/simulation/normal_fragment.glsl'),
+      loadFile('shaders/simulation/update_fragment.glsl'),
     ];
 
     this.loaded = Promise.all(shadersPromises)
@@ -166,8 +166,8 @@ class Caustics {
     this.texture = new THREE.WebGLRenderTarget(1024, 1024, {type: THREE.UNSIGNED_BYTE});
 
     const shadersPromises = [
-      loadFile('shaders/caustics/caustics_vertex.glsl'),
-      loadFile('shaders/caustics/caustics_fragment.glsl')
+      loadFile('shaders/caustics/vertex.glsl'),
+      loadFile('shaders/caustics/fragment.glsl')
     ];
 
     this.loaded = Promise.all(shadersPromises)
@@ -205,8 +205,8 @@ class Water {
     this.geometry = new THREE.PlaneBufferGeometry(2, 2, 200, 200);
 
     const shadersPromises = [
-      loadFile('shaders/water/water_vertex.glsl'),
-      loadFile('shaders/water/water_fragment.glsl')
+      loadFile('shaders/water/vertex.glsl'),
+      loadFile('shaders/water/fragment.glsl')
     ];
 
     this.loaded = Promise.all(shadersPromises)
