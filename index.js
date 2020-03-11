@@ -340,7 +340,7 @@ function animate() {
 
   const causticsTexture = caustics.texture.texture;
 
-  // debug.draw(renderer, caustics.texture.texture);
+  // debug.draw(renderer, causticsTexture);
 
   renderer.setRenderTarget(null);
   renderer.setClearColor(white, 1);

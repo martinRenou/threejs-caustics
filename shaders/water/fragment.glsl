@@ -34,7 +34,7 @@ vec3 getSurfaceRayColor(vec3 origin, vec3 ray, vec3 waterColor) {
 
 
 void main() {
-  vec2 coord = pos.xz + 0.5;
+  vec2 coord = pos.xz * 0.5 + 0.5;
   vec4 info = texture2D(water, coord);
 
   /* make water look more "peaked" */
