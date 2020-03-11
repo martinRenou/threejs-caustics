@@ -338,7 +338,6 @@ const debug = new Debug();
 // Main rendering loop
 function animate() {
   waterSimulation.stepSimulation(renderer);
-  waterSimulation.stepSimulation(renderer);
   waterSimulation.updateNormals(renderer);
 
   const waterTexture = waterSimulation.texture.texture;
