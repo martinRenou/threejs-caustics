@@ -14,7 +14,8 @@ loadFile('shaders/utils.glsl').then((utils) => {
 
 // Create Renderer
 const camera = new THREE.PerspectiveCamera(75, width / height, 0.01, 100);
-camera.position.set(1, 1, -1);
+camera.position.set(0.426, 0.677, -2.095);
+camera.rotation.set(2.828, 0.191, 3.108);
 
 const renderer = new THREE.WebGLRenderer({canvas: canvas, antialias: true, alpha: true});
 renderer.setSize(width, height);
@@ -371,7 +372,7 @@ function onMouseMove(event) {
   const intersects = raycaster.intersectObject(targetmesh);
 
   for (let intersect of intersects) {
-    waterSimulation.addDrop(renderer, intersect.point.x, intersect.point.z, 0.03, 0.02);
+    waterSimulation.addDrop(renderer, intersect.point.x, intersect.point.z, 0.03, 0.04);
   }
 }
 
