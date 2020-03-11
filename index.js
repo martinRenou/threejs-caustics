@@ -5,6 +5,7 @@ const height = canvas.height;
 
 // Colors
 const black = new THREE.Color('black');
+const white = new THREE.Color('white');
 
 // Shader chunks
 loadFile('shaders/utils.glsl').then((utils) => {
@@ -339,7 +340,7 @@ function animate() {
   // debug.draw(renderer, caustics.texture.texture);
 
   renderer.setRenderTarget(null);
-  renderer.setClearColor(black, 1);
+  renderer.setClearColor(white, 1);
   renderer.clear();
 
   water.draw(renderer, waterTexture, causticsTexture);
