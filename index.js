@@ -277,6 +277,9 @@ class Pool {
   }
 
   draw(renderer, waterTexture, causticsTexture) {
+    this._material.uniforms['water'].value = waterTexture;
+    this._material.uniforms['causticTex'].value = causticsTexture;
+
     renderer.render(this._mesh, camera);
   }
 
