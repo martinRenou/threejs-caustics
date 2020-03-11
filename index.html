@@ -2,14 +2,36 @@
 <html>
   <head>
     <title>ThreeJS Water</title>
-    <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.8.0/css/bulma.min.css">
 
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/three@v0.113.0"></script>
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/three@v0.113.0/examples/js/controls/TrackballControls.js"></script>
   </head>
 
   <body>
-    <canvas id="canvas" height="600px" width="800px"></canvas>
+    <section class="section">
+      <div class="container">
+        <h1 class="title">
+          ThreeJS Water
+        </h1>
+        <p class="subtitle">
+          This is an implementation of <a href="http://madebyevan.com/webgl-water">Evan Wallace's webgl-water demo</a> using <a href="http://threejs.org">ThreeJS</a>, made by <a href="https://twitter.com/martinRenou">Martin Renou</a>.
+        </p>
+
+        <div class="columns">
+          <div class="column">
+          </div>
+          <div class="column">
+            <canvas id="canvas" height="600px" width="800px" style=""></canvas>
+          </div>
+          <div class="column">
+          </div>
+        </div>
+
+      </div>
+    </section>
 
     <script type="text/javascript" src="index.js"></script>
   </body>
