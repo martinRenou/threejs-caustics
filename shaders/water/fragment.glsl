@@ -19,7 +19,7 @@ vec3 getSurfaceRayColor(vec3 origin, vec3 ray, vec3 waterColor) {
   } else {
     vec2 t = intersectCube(origin, ray, vec3(-1.0, -poolHeight, -1.0), vec3(1.0, 2.0, 1.0));
     vec3 hit = origin + ray * t.y;
-    if (hit.y < 2.0 / 12.0) {
+    if (hit.y < 7.0 / 12.0) {
       color = getWallColor(hit);
     } else {
       color = textureCube(sky, ray).rgb;
