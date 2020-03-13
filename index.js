@@ -17,19 +17,22 @@ function loadFile(filename) {
   });
 }
 
+// Light direction
+const light = [0.7559289460184544, 0.7559289460184544, -0.3779644730092272];
+
 // Create Renderer
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(75, width / height, 0.01, 100);
 camera.position.set(0.426, 0.677, -2.095);
 camera.rotation.set(2.828, 0.191, 3.108);
+// const camera = new THREE.OrthographicCamera(-1.5, 1.5, 1.5, -1.5);
+// camera.position.set(light[0], light[1], light[2]);
+// camera.lookAt(0, 0, 0);
 scene.add(camera);
 
 const renderer = new THREE.WebGLRenderer({canvas: canvas, antialias: true, alpha: true});
 renderer.setSize(width, height);
 renderer.autoClear = false;
-
-// Light direction
-const light = [0.7559289460184544, 0.7559289460184544, -0.3779644730092272];
 
 // Create mouse Controls
 const controls = new THREE.TrackballControls(
@@ -190,6 +193,20 @@ class Water {
 
   setTexture(waterTexture) {
     this.material.uniforms['water'].value = waterTexture;
+  }
+
+}
+
+
+class NormalMapper {
+
+
+  constructor() {
+    this._camera = new THREE.OrthographicCamera(-10, 10, -10, 10, -10, 20);
+
+    this._target = new THREE.WebGLRenderTarget(1024, 1024, {type: THREE.FloatType});
+
+    // TODO
   }
 
 }
