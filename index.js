@@ -176,6 +176,7 @@ class Water {
         vertexShader: vertexShader,
         fragmentShader: fragmentShader,
       });
+      this.material.side = THREE.DoubleSide;
 
       this.mesh = new THREE.Mesh(this.geometry, this.material);
     });
