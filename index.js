@@ -251,8 +251,48 @@ loadFile('shaders/utils.glsl').then((utils) => {
   class Pool {
 
     constructor() {
-      // TODO Remove top of the cube
-      this._geometry = new THREE.BoxBufferGeometry(2, 2, 2);
+      this._geometry = new THREE.BufferGeometry();
+      const vertices = new Float32Array([
+        -1, -1, -1,
+        -1, -1, 1,
+        -1, 1, -1,
+        -1, 1, 1,
+        1, -1, -1,
+        1, 1, -1,
+        1, -1, 1,
+        1, 1, 1,
+        -1, -1, -1,
+        1, -1, -1,
+        -1, -1, 1,
+        1, -1, 1,
+        -1, 1, -1,
+        -1, 1, 1,
+        1, 1, -1,
+        1, 1, 1,
+        -1, -1, -1,
+        -1, 1, -1,
+        1, -1, -1,
+        1, 1, -1,
+        -1, -1, 1,
+        1, -1, 1,
+        -1, 1, 1,
+        1, 1, 1
+      ]);
+      const indices = new Uint32Array([
+        0, 1, 2,
+        2, 1, 3,
+        4, 5, 6,
+        6, 5, 7,
+        12, 13, 14,
+        14, 13, 15,
+        16, 17, 18,
+        18, 17, 19,
+        20, 21, 22,
+        22, 21, 23
+      ]);
+
+      this._geometry.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
+      this._geometry.setIndex(new THREE.BufferAttribute(indices, 1));
 
       const shadersPromises = [
         loadFile('shaders/pool/vertex.glsl'),
