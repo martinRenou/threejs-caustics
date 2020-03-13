@@ -1,6 +1,3 @@
-precision highp float;
-precision highp int;
-
 uniform vec3 light;
 uniform sampler2D water;
 

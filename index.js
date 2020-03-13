@@ -177,7 +177,7 @@ class Water {
 
     this.loaded = Promise.all(shadersPromises)
         .then(([vertexShader, fragmentShader]) => {
-      this.material = new THREE.RawShaderMaterial({
+      this.material = new THREE.ShaderMaterial({
         uniforms: {
             light: { value: light },
             water: { value: null },

@@ -1,8 +1,4 @@
-uniform mat4 projectionMatrix;
-uniform mat4 modelViewMatrix;
 uniform sampler2D water;
-
-attribute vec3 position;
 
 varying vec3 pos;
 
