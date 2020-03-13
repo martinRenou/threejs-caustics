@@ -18,9 +18,11 @@ function loadFile(filename) {
 }
 
 // Create Renderer
+const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(75, width / height, 0.01, 100);
 camera.position.set(0.426, 0.677, -2.095);
 camera.rotation.set(2.828, 0.191, 3.108);
+scene.add(camera);
 
 const renderer = new THREE.WebGLRenderer({canvas: canvas, antialias: true, alpha: true});
 renderer.setSize(width, height);
@@ -143,12 +145,16 @@ class WaterSimulation {
     const oldTexture = this.texture;
     const newTexture = this.texture === this._textureA ? this._textureB : this._textureA;
 
-    mesh.material.uniforms['texture'].value = oldTexture.texture;
+    const target = renderer.getRenderTarget();
 
     renderer.setRenderTarget(newTexture);
 
+    mesh.material.uniforms['texture'].value = oldTexture.texture;
+
     // TODO Camera is useless here, what should be done?
     renderer.render(mesh, this._camera);
+
+    renderer.setRenderTarget(target);
 
     this.texture = newTexture;
   }
@@ -182,10 +188,8 @@ class Water {
     });
   }
 
-  draw(renderer, waterTexture) {
+  setTexture(waterTexture) {
     this.material.uniforms['water'].value = waterTexture;
-
-    renderer.render(this.mesh, camera);
   }
 
 }
@@ -219,8 +223,12 @@ class Debug {
   draw(renderer, texture) {
     this._material.uniforms['texture'].value = texture;
 
+    const target = renderer.getRenderTarget();
+
     renderer.setRenderTarget(null);
     renderer.render(this._mesh, this._camera);
+
+    renderer.setRenderTarget(target);
   }
 
 }
@@ -240,11 +248,12 @@ function animate() {
 
   // debug.draw(renderer, waterTexture);
 
-  renderer.setRenderTarget(null);
   renderer.setClearColor(white, 1);
   renderer.clear();
 
-  water.draw(renderer, waterTexture);
+  water.setTexture(waterTexture);
+
+  renderer.render(scene, camera);
 
   controls.update();
 
@@ -269,6 +278,8 @@ function onMouseMove(event) {
 const loaded = [waterSimulation.loaded, water.loaded, debug.loaded];
 
 Promise.all(loaded).then(() => {
+  scene.add(water.mesh);
+
   canvas.addEventListener('mousemove', { handleEvent: onMouseMove });
 
   for (var i = 0; i < 20; i++) {
