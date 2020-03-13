@@ -1,18 +1,16 @@
 uniform vec3 light;
-uniform sampler2D water;
 
 varying vec3 pos;
 
 
 void main() {
-  vec2 coord = pos.xz * 0.5 + 0.5;
-  vec4 info = texture2D(water, coord);
+  vec3 dx = dFdx(pos);
+  vec3 dy = dFdy(pos);
+  vec3 normal = normalize(cross(dx,dy));
 
-  vec3 normal = vec3(info.b, sqrt(1.0 - dot(info.ba, info.ba)), info.a);
-
-  float light_intensity = - dot(light, normalize(normal)) + 1.;
+  float light_intensity = - dot(light, normalize(normal));
 
   vec3 color = vec3(0.45, 0.64, 0.74);
 
-  gl_FragColor = vec4(color * light_intensity + 0.4, 1.0);
+  gl_FragColor = vec4(color * light_intensity, 1.0);
 }

@@ -18,13 +18,12 @@ function loadFile(filename) {
 }
 
 // Light direction
-const light = [0.7559289460184544, 0.7559289460184544, -0.3779644730092272];
+const light = [0., 0., -1.];
 
 // Create Renderer
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(75, width / height, 0.01, 100);
-camera.position.set(0.426, 0.677, -2.095);
-camera.rotation.set(2.828, 0.191, 3.108);
+camera.position.set(0, -1, 1);
 // const camera = new THREE.OrthographicCamera(-1.5, 1.5, 1.5, -1.5);
 // camera.position.set(light[0], light[1], light[2]);
 // camera.lookAt(0, 0, 0);
@@ -52,10 +51,6 @@ controls.dynamicDampingFactor = 0.9;
 const raycaster = new THREE.Raycaster();
 const mouse = new THREE.Vector2();
 const targetgeometry = new THREE.PlaneGeometry(2, 2);
-for (let vertex of targetgeometry.vertices) {
-  vertex.z = - vertex.y;
-  vertex.y = 0.;
-}
 const targetmesh = new THREE.Mesh(targetgeometry);
 
 // Textures
@@ -168,7 +163,7 @@ class WaterSimulation {
 class Water {
 
   constructor() {
-    this.geometry = new THREE.PlaneBufferGeometry(2, 2, 200, 200);
+    this.geometry = new THREE.PlaneBufferGeometry(2, 2, 256, 256);
 
     const shadersPromises = [
       loadFile('shaders/water/vertex.glsl'),
@@ -186,6 +181,9 @@ class Water {
         fragmentShader: fragmentShader,
       });
       this.material.side = THREE.DoubleSide;
+      this.material.extensions = {
+        derivatives: true
+      };
 
       this.mesh = new THREE.Mesh(this.geometry, this.material);
     });
@@ -288,7 +286,7 @@ function onMouseMove(event) {
   const intersects = raycaster.intersectObject(targetmesh);
 
   for (let intersect of intersects) {
-    waterSimulation.addDrop(renderer, intersect.point.x, intersect.point.z, 0.03, 0.04);
+    waterSimulation.addDrop(renderer, intersect.point.x, intersect.point.y, 0.03, 0.04);
   }
 }
 
