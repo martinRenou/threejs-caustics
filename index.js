@@ -22,11 +22,11 @@ const light = [0., 0., -1.];
 
 // Create Renderer
 const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(75, width / height, 0.01, 100);
-camera.position.set(0, -1, 1);
-// const camera = new THREE.OrthographicCamera(-1.5, 1.5, 1.5, -1.5);
-// camera.position.set(light[0], light[1], light[2]);
-// camera.lookAt(0, 0, 0);
+// const camera = new THREE.PerspectiveCamera(75, width / height, 0.01, 100);
+// camera.position.set(0, -1, 1);
+const camera = new THREE.OrthographicCamera(-1, 1, 1, -1);
+camera.position.set(-2 * light[0], -2 * light[1], -2 * light[2]);
+camera.lookAt(0, 0, 0);
 scene.add(camera);
 
 const renderer = new THREE.WebGLRenderer({canvas: canvas, antialias: true, alpha: true});
@@ -80,12 +80,11 @@ class WaterSimulation {
     const shadersPromises = [
       loadFile('shaders/simulation/vertex.glsl'),
       loadFile('shaders/simulation/drop_fragment.glsl'),
-      loadFile('shaders/simulation/normal_fragment.glsl'),
       loadFile('shaders/simulation/update_fragment.glsl'),
     ];
 
     this.loaded = Promise.all(shadersPromises)
-        .then(([vertexShader, dropFragmentShader, normalFragmentShader, updateFragmentShader]) => {
+        .then(([vertexShader, dropFragmentShader, updateFragmentShader]) => {
       const dropMaterial = new THREE.RawShaderMaterial({
         uniforms: {
             center: { value: [0, 0] },
@@ -95,15 +94,6 @@ class WaterSimulation {
         },
         vertexShader: vertexShader,
         fragmentShader: dropFragmentShader,
-      });
-
-      const normalMaterial = new THREE.RawShaderMaterial({
-        uniforms: {
-            delta: { value: [1 / 256, 1 / 256] },  // TODO: Remove this useless uniform and hardcode it in shaders?
-            texture: { value: null },
-        },
-        vertexShader: vertexShader,
-        fragmentShader: normalFragmentShader,
       });
 
       const updateMaterial = new THREE.RawShaderMaterial({
@@ -116,7 +106,6 @@ class WaterSimulation {
       });
 
       this._dropMesh = new THREE.Mesh(this._geometry, dropMaterial);
-      this._normalMesh = new THREE.Mesh(this._geometry, normalMaterial);
       this._updateMesh = new THREE.Mesh(this._geometry, updateMaterial);
     });
   }
@@ -132,10 +121,6 @@ class WaterSimulation {
 
   stepSimulation(renderer) {
     this._render(renderer, this._updateMesh);
-  }
-
-  updateNormals(renderer) {
-    this._render(renderer, this._normalMesh);
   }
 
   _render(renderer, mesh) {
@@ -198,13 +183,43 @@ class Water {
 
 class NormalMapper {
 
+  constructor(geometry) {
+    this._camera = new THREE.OrthographicCamera(-1, 1, 1, -1);
+    camera.position.set(-2 * light[0], -2 * light[1], -2 * light[2]);
+    camera.lookAt(0, 0, 0);
 
-  constructor() {
-    this._camera = new THREE.OrthographicCamera(-10, 10, -10, 10, -10, 20);
-
+    this._geometry = geometry;
     this._target = new THREE.WebGLRenderTarget(1024, 1024, {type: THREE.FloatType});
 
-    // TODO
+    const shadersPromises = [
+      loadFile('shaders/water/vertex.glsl'),
+      loadFile('shaders/normal/fragment.glsl')
+    ];
+
+    this.loaded = Promise.all(shadersPromises)
+        .then(([vertexShader, fragmentShader]) => {
+      this._material = new THREE.ShaderMaterial({
+        vertexShader: vertexShader,
+        fragmentShader: fragmentShader,
+      });
+      this._material.extensions = {
+        derivatives: true
+      };
+
+      this.mesh = new THREE.Mesh(this._geometry, this._material);
+    });
+  }
+
+  render(renderer) {
+    const target = renderer.getRenderTarget();
+
+    renderer.setRenderTarget(null);
+    renderer.setClearColor(black, 0);
+    renderer.clear();
+
+    renderer.render(this.mesh, this._camera);
+
+    renderer.setRenderTarget(target);
   }
 
 }
@@ -250,6 +265,7 @@ class Debug {
 
 const waterSimulation = new WaterSimulation();
 const water = new Water();
+const normal = new NormalMapper(water.geometry);
 
 const debug = new Debug();
 
@@ -257,16 +273,19 @@ const debug = new Debug();
 // Main rendering loop
 function animate() {
   waterSimulation.stepSimulation(renderer);
-  waterSimulation.updateNormals(renderer);
 
   const waterTexture = waterSimulation.texture.texture;
 
-  // debug.draw(renderer, waterTexture);
+  // normal.render(renderer);
 
-  renderer.setClearColor(white, 1);
-  renderer.clear();
+  // const normalTexture = normal._target.texture;
 
-  water.setTexture(waterTexture);
+  // debug.draw(renderer, normalTexture);
+
+  // renderer.setClearColor(white, 1);
+  // renderer.clear();
+
+  // water.setTexture(waterTexture);
 
   renderer.render(scene, camera);
 
@@ -290,7 +309,7 @@ function onMouseMove(event) {
   }
 }
 
-const loaded = [waterSimulation.loaded, water.loaded, debug.loaded];
+const loaded = [waterSimulation.loaded, water.loaded, debug.loaded, normal.loaded];
 
 Promise.all(loaded).then(() => {
   scene.add(water.mesh);
