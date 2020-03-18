@@ -66,6 +66,52 @@ const textureloader = new THREE.TextureLoader();
 
 const tiles = textureloader.load('tiles.jpg');
 
+// Geometries
+const waterGeometry = new THREE.PlaneBufferGeometry(2, 2, 256, 256);
+const poolGeometry = new THREE.BufferGeometry();
+const vertices = new Float32Array([
+  -1, -1, -1,
+  -1, -1, 1,
+  -1, 1, -1,
+  -1, 1, 1,
+  1, -1, -1,
+  1, 1, -1,
+  1, -1, 1,
+  1, 1, 1,
+  -1, -1, -1,
+  1, -1, -1,
+  -1, -1, 1,
+  1, -1, 1,
+  -1, 1, -1,
+  -1, 1, 1,
+  1, 1, -1,
+  1, 1, 1,
+  -1, -1, -1,
+  -1, 1, -1,
+  1, -1, -1,
+  1, 1, -1,
+  -1, -1, 1,
+  1, -1, 1,
+  -1, 1, 1,
+  1, 1, 1
+]);
+const indices = new Uint32Array([
+  0, 1, 2,
+  2, 1, 3,
+  4, 5, 6,
+  6, 5, 7,
+  12, 13, 14,
+  14, 13, 15,
+  16, 17, 18,
+  18, 17, 19,
+  20, 21, 22,
+  22, 21, 23
+]);
+
+poolGeometry.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
+poolGeometry.setIndex(new THREE.BufferAttribute(indices, 1));
+
+
 class WaterSimulation {
 
   constructor() {
@@ -148,7 +194,7 @@ class WaterSimulation {
 class Water {
 
   constructor() {
-    this.geometry = new THREE.PlaneBufferGeometry(2, 2, 256, 256);
+    this.geometry = waterGeometry;
 
     const shadersPromises = [
       loadFile('shaders/water/vertex.glsl'),
@@ -181,32 +227,42 @@ class Water {
 }
 
 
+// This class renders the water normal for each fragment visible
+// from the light point of view. If the water is not visible from
+// the light point of view, for example because hidden by another
+// mesh like the pool.
 class NormalMapper {
 
-  constructor(geometry) {
+  constructor() {
     this._camera = new THREE.OrthographicCamera(-1, 1, 1, -1);
     camera.position.set(-2 * light[0], -2 * light[1], -2 * light[2]);
     camera.lookAt(0, 0, 0);
 
-    this._geometry = geometry;
     this._target = new THREE.WebGLRenderTarget(1024, 1024, {type: THREE.FloatType});
 
     const shadersPromises = [
       loadFile('shaders/water/vertex.glsl'),
-      loadFile('shaders/normal/fragment.glsl')
+      loadFile('shaders/normal/water_fragment.glsl'),
+      loadFile('shaders/normal/environment_fragment.glsl')
     ];
 
     this.loaded = Promise.all(shadersPromises)
-        .then(([vertexShader, fragmentShader]) => {
-      this._material = new THREE.ShaderMaterial({
+        .then(([vertexShader, waterFragmentShader, environmentFragmentShader]) => {
+      this._waterMaterial = new THREE.ShaderMaterial({
         vertexShader: vertexShader,
-        fragmentShader: fragmentShader,
+        fragmentShader: waterFragmentShader,
       });
-      this._material.extensions = {
+      this._waterMaterial.extensions = {
         derivatives: true
       };
 
-      this.mesh = new THREE.Mesh(this._geometry, this._material);
+      this._poolMaterial = new THREE.ShaderMaterial({
+        fragmentShader: environmentFragmentShader,
+      });
+      this._poolMaterial.side = THREE.BackSide;
+
+      this._waterMesh = new THREE.Mesh(waterGeometry, this._waterMaterial);
+      this._poolShader = new THREE.Mesh(poolGeometry, this._poolMaterial);
     });
   }
 
@@ -217,6 +273,7 @@ class NormalMapper {
     renderer.setClearColor(black, 0);
     renderer.clear();
 
+    // TODO Use a different layer for the Normal Mapper?
     renderer.render(this.mesh, this._camera);
 
     renderer.setRenderTarget(target);
@@ -265,7 +322,7 @@ class Debug {
 
 const waterSimulation = new WaterSimulation();
 const water = new Water();
-const normal = new NormalMapper(water.geometry);
+const normal = new NormalMapper();
 
 const debug = new Debug();
 
@@ -285,7 +342,7 @@ function animate() {
   // renderer.setClearColor(white, 1);
   // renderer.clear();
 
-  // water.setTexture(waterTexture);
+  water.setTexture(waterTexture);
 
   renderer.render(scene, camera);
 
