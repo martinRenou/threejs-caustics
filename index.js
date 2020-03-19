@@ -234,9 +234,9 @@ class Water {
 class NormalMapper {
 
   constructor() {
-    this._camera = new THREE.OrthographicCamera(-1, 1, 1, -1);
-    camera.position.set(-2 * light[0], -2 * light[1], -2 * light[2]);
-    camera.lookAt(0, 0, 0);
+    this._camera = new THREE.OrthographicCamera(-1.2, 1.2, 1.2, -1.2);
+    this._camera.position.set(-2 * light[0], -2 * light[1], -2 * light[2]);
+    this._camera.lookAt(0, 0, 0);
 
     this.target = new THREE.WebGLRenderTarget(1024, 1024, {type: THREE.FloatType});
 
@@ -255,6 +255,7 @@ class NormalMapper {
         vertexShader: vertexShader,
         fragmentShader: waterFragmentShader,
       });
+      this._waterMaterial.side = THREE.DoubleSide;
       this._waterMaterial.extensions = {
         derivatives: true
       };
@@ -347,14 +348,15 @@ function animate() {
 
   const normalTexture = normal.target.texture;
 
-  // debug.draw(renderer, normalTexture);
+  debug.draw(renderer, normalTexture);
 
-  renderer.setClearColor(white, 1);
-  renderer.clear();
+  // renderer.setRenderTarget(null);
+  // renderer.setClearColor(white, 1);
+  // renderer.clear();
 
-  renderer.render(scene, camera);
+  // renderer.render(scene, camera);
 
-  controls.update();
+  // controls.update();
 
   window.requestAnimationFrame(animate);
 }
