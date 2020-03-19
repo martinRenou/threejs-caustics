@@ -119,9 +119,9 @@ class WaterSimulation {
 
     this._geometry = new THREE.PlaneBufferGeometry(2, 2);
 
-    this._textureA = new THREE.WebGLRenderTarget(256, 256, {type: THREE.FloatType});
-    this._textureB = new THREE.WebGLRenderTarget(256, 256, {type: THREE.FloatType});
-    this.texture = this._textureA;
+    this._targetA = new THREE.WebGLRenderTarget(256, 256, {type: THREE.FloatType});
+    this._targetB = new THREE.WebGLRenderTarget(256, 256, {type: THREE.FloatType});
+    this.target = this._targetA;
 
     const shadersPromises = [
       loadFile('shaders/simulation/vertex.glsl'),
@@ -171,21 +171,21 @@ class WaterSimulation {
 
   _render(renderer, mesh) {
     // Swap textures
-    const oldTexture = this.texture;
-    const newTexture = this.texture === this._textureA ? this._textureB : this._textureA;
+    const _oldTarget = this.target;
+    const _newTarget = this.target === this._targetA ? this._targetB : this._targetA;
 
-    const target = renderer.getRenderTarget();
+    const oldTarget = renderer.getRenderTarget();
 
-    renderer.setRenderTarget(newTexture);
+    renderer.setRenderTarget(_newTarget);
 
-    mesh.material.uniforms['texture'].value = oldTexture.texture;
+    mesh.material.uniforms['texture'].value = _oldTarget.texture;
 
     // TODO Camera is useless here, what should be done?
     renderer.render(mesh, this._camera);
 
-    renderer.setRenderTarget(target);
+    renderer.setRenderTarget(oldTarget);
 
-    this.texture = newTexture;
+    this.target = _newTarget;
   }
 
 }
@@ -238,7 +238,7 @@ class NormalMapper {
     camera.position.set(-2 * light[0], -2 * light[1], -2 * light[2]);
     camera.lookAt(0, 0, 0);
 
-    this._target = new THREE.WebGLRenderTarget(1024, 1024, {type: THREE.FloatType});
+    this.target = new THREE.WebGLRenderTarget(1024, 1024, {type: THREE.FloatType});
 
     const shadersPromises = [
       loadFile('shaders/water/vertex.glsl'),
@@ -249,6 +249,9 @@ class NormalMapper {
     this.loaded = Promise.all(shadersPromises)
         .then(([vertexShader, waterFragmentShader, environmentFragmentShader]) => {
       this._waterMaterial = new THREE.ShaderMaterial({
+        uniforms: {
+            water: { value: null },
+        },
         vertexShader: vertexShader,
         fragmentShader: waterFragmentShader,
       });
@@ -262,21 +265,25 @@ class NormalMapper {
       this._poolMaterial.side = THREE.BackSide;
 
       this._waterMesh = new THREE.Mesh(waterGeometry, this._waterMaterial);
-      this._poolShader = new THREE.Mesh(poolGeometry, this._poolMaterial);
+      this._poolMesh = new THREE.Mesh(poolGeometry, this._poolMaterial);
     });
   }
 
-  render(renderer) {
-    const target = renderer.getRenderTarget();
+  setTexture(waterTexture) {
+    this._waterMaterial.uniforms['water'].value = waterTexture;
+  }
 
-    renderer.setRenderTarget(null);
+  render(renderer) {
+    const oldTarget = renderer.getRenderTarget();
+
+    renderer.setRenderTarget(this.target);
     renderer.setClearColor(black, 0);
     renderer.clear();
 
-    // TODO Use a different layer for the Normal Mapper?
-    renderer.render(this.mesh, this._camera);
+    renderer.render(this._waterMesh, this._camera);
+    // renderer.render(this._poolMesh, this._camera);
 
-    renderer.setRenderTarget(target);
+    renderer.setRenderTarget(oldTarget);
   }
 
 }
@@ -310,12 +317,12 @@ class Debug {
   draw(renderer, texture) {
     this._material.uniforms['texture'].value = texture;
 
-    const target = renderer.getRenderTarget();
+    const oldTarget = renderer.getRenderTarget();
 
     renderer.setRenderTarget(null);
     renderer.render(this._mesh, this._camera);
 
-    renderer.setRenderTarget(target);
+    renderer.setRenderTarget(oldTarget);
   }
 
 }
@@ -331,18 +338,19 @@ const debug = new Debug();
 function animate() {
   waterSimulation.stepSimulation(renderer);
 
-  const waterTexture = waterSimulation.texture.texture;
+  const waterTexture = waterSimulation.target.texture;
 
-  // normal.render(renderer);
+  water.setTexture(waterTexture);
+  normal.setTexture(waterTexture);
 
-  // const normalTexture = normal._target.texture;
+  normal.render(renderer);
+
+  const normalTexture = normal.target.texture;
 
   // debug.draw(renderer, normalTexture);
 
-  // renderer.setClearColor(white, 1);
-  // renderer.clear();
-
-  water.setTexture(waterTexture);
+  renderer.setClearColor(white, 1);
+  renderer.clear();
 
   renderer.render(scene, camera);
 
