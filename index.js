@@ -336,6 +336,62 @@ class NormalMapper {
 }
 
 
+// Class that renders the caustics, given the environment texture and the water normal texture
+class Caustics {
+
+  constructor() {
+    this._camera = new THREE.OrthographicCamera(-1.2, 1.2, 1.2, -1.2);
+    this._camera.position.set(-2 * light[0], -2 * light[1], -2 * light[2]);
+    this._camera.lookAt(0, 0, 0);
+
+    this.target = new THREE.WebGLRenderTarget(1024, 1024, {type: THREE.FloatType});
+
+    this._causticsGeometry = new THREE.PlaneBufferGeometry(2, 2, 256, 256);
+
+    const shadersPromises = [
+      loadFile('shaders/caustics/vertex.glsl'),
+      loadFile('shaders/caustics/fragment.glsl')
+    ];
+
+    this.loaded = Promise.all(shadersPromises)
+        .then(([vertexShader, fragmentShader]) => {
+      this._material = new THREE.ShaderMaterial({
+        uniforms: {
+          light: { value: light },
+          env: { value: null },
+          waterNormal: { value: null },
+        },
+        vertexShader: vertexShader,
+        fragmentShader: fragmentShader,
+      });
+      // this._material.extensions = {
+      //   derivatives: true
+      // };
+
+      this._causticsMesh = new THREE.Mesh(this._causticsGeometry, this._material);
+    });
+  }
+
+  setTextures(envTexture, normalTexture) {
+    this._material.uniforms['env'].value = envTexture;
+    this._material.uniforms['waterNormal'].value = normalTexture;
+  }
+
+  render(renderer) {
+    const oldTarget = renderer.getRenderTarget();
+
+    renderer.setRenderTarget(this.target);
+    renderer.setClearColor(black, 0);
+    renderer.clear();
+
+    renderer.render(this._causticsMesh, this._camera);
+
+    renderer.setRenderTarget(oldTarget);
+  }
+
+}
+
+
 class Floor {
 
   constructor() {
