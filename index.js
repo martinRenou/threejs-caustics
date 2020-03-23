@@ -17,8 +17,9 @@ function loadFile(filename) {
   });
 }
 
-// Light direction
+// Constants
 const light = [0., 0., -1.];
+const waterPosition = new THREE.Vector3(0, 0, 0.5);
 
 // Create Renderer
 const scene = new THREE.Scene();
@@ -48,6 +49,9 @@ controls.dynamicDampingFactor = 0.9;
 const raycaster = new THREE.Raycaster();
 const mouse = new THREE.Vector2();
 const targetgeometry = new THREE.PlaneGeometry(2, 2);
+for (let vertex of targetgeometry.vertices) {
+  vertex.z = waterPosition.z;
+}
 const targetmesh = new THREE.Mesh(targetgeometry);
 
 // Textures
@@ -108,6 +112,8 @@ const indices = new Uint32Array([
 poolGeometry.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
 poolGeometry.setIndex(new THREE.BufferAttribute(indices, 1));
 
+// Floor
+const floorGeometry = new THREE.PlaneBufferGeometry(4, 4, 1, 1);
 
 class WaterSimulation {
 
@@ -214,6 +220,7 @@ class Water {
       };
 
       this.mesh = new THREE.Mesh(this.geometry, this.material);
+      this.mesh.position.set(waterPosition.x, waterPosition.y, waterPosition.z);
     });
   }
 
@@ -287,6 +294,34 @@ class NormalMapper {
 }
 
 
+class Floor {
+
+  constructor() {
+    const shadersPromises = [
+      loadFile('shaders/floor/vertex.glsl'),
+      loadFile('shaders/floor/fragment.glsl')
+    ];
+
+    this.loaded = Promise.all(shadersPromises)
+        .then(([vertexShader, fragmentShader]) => {
+      this._material = new THREE.ShaderMaterial({
+        uniforms: {
+            tiles: { value: tiles },
+        },
+        vertexShader: vertexShader,
+        fragmentShader: fragmentShader,
+      });
+      this._material.extensions = {
+        derivatives: true
+      };
+
+      this.mesh = new THREE.Mesh(floorGeometry, this._material);
+    });
+  }
+
+}
+
+
 class Debug {
 
   constructor() {
@@ -327,6 +362,7 @@ class Debug {
 
 const waterSimulation = new WaterSimulation();
 const water = new Water();
+const floor = new Floor();
 const normal = new NormalMapper();
 
 const debug = new Debug();
@@ -373,10 +409,11 @@ function onMouseMove(event) {
   }
 }
 
-const loaded = [waterSimulation.loaded, water.loaded, debug.loaded, normal.loaded];
+const loaded = [waterSimulation.loaded, water.loaded, floor.loaded, debug.loaded, normal.loaded];
 
 Promise.all(loaded).then(() => {
   scene.add(water.mesh);
+  scene.add(floor.mesh);
 
   canvas.addEventListener('mousemove', { handleEvent: onMouseMove });
 
