@@ -231,6 +231,48 @@ class Water {
 }
 
 
+// This renders the environment map seen from the light POV.
+// The resulting texture contains (posx, posy, posz, depth) in the colors channels.
+class Env {
+
+  constructor() {
+    this._camera = new THREE.OrthographicCamera(-1.2, 1.2, 1.2, -1.2);
+    this._camera.position.set(-2 * light[0], -2 * light[1], -2 * light[2]);
+    this._camera.lookAt(0, 0, 0);
+
+    this.target = new THREE.WebGLRenderTarget(1024, 1024, {type: THREE.FloatType});
+
+    const shadersPromises = [
+      loadFile('shaders/env/vertex.glsl'),
+      loadFile('shaders/env/fragment.glsl')
+    ];
+
+    this.loaded = Promise.all(shadersPromises)
+        .then(([vertexShader, fragmentShader]) => {
+      this._material = new THREE.ShaderMaterial({
+        vertexShader: vertexShader,
+        fragmentShader: fragmentShader,
+      });
+    });
+  }
+
+  render(renderer, geometries) {
+    const oldTarget = renderer.getRenderTarget();
+
+    renderer.setRenderTarget(this.target);
+    renderer.setClearColor(black, 0);
+    renderer.clear();
+
+    for (let geometry of geometries) {
+      renderer.render(new THREE.Mesh(geometry, this._material), this._camera);
+    }
+
+    renderer.setRenderTarget(oldTarget);
+  }
+
+}
+
+
 // This class renders the water normal for each fragment visible
 // from the light point of view. If the water is not visible from
 // the light point of view, for example because hidden by another
@@ -264,13 +306,13 @@ class NormalMapper {
         derivatives: true
       };
 
-      this._poolMaterial = new THREE.ShaderMaterial({
+      this._floorMaterial = new THREE.ShaderMaterial({
         fragmentShader: environmentFragmentShader,
       });
-      this._poolMaterial.side = THREE.BackSide;
+      this._floorMaterial.side = THREE.BackSide;
 
       this._waterMesh = new THREE.Mesh(waterGeometry, this._waterMaterial);
-      this._poolMesh = new THREE.Mesh(poolGeometry, this._poolMaterial);
+      this._floorMesh = new THREE.Mesh(floorGeometry, this._floorMaterial);
     });
   }
 
@@ -286,7 +328,7 @@ class NormalMapper {
     renderer.clear();
 
     renderer.render(this._waterMesh, this._camera);
-    // renderer.render(this._poolMesh, this._camera);
+    renderer.render(this._floorMesh, this._camera);
 
     renderer.setRenderTarget(oldTarget);
   }
@@ -344,6 +386,7 @@ class Debug {
       });
 
       this._mesh = new THREE.Mesh(this._geometry, this._material);
+      this._material.transparent = true;
     });
   }
 
@@ -363,6 +406,7 @@ class Debug {
 const waterSimulation = new WaterSimulation();
 const water = new Water();
 const floor = new Floor();
+const env = new Env();
 const normal = new NormalMapper();
 
 const debug = new Debug();
@@ -377,19 +421,21 @@ function animate() {
   water.setTexture(waterTexture);
   normal.setTexture(waterTexture);
 
-  normal.render(renderer);
+  env.render(renderer, [floorGeometry]);
+  const envTexture = env.target.texture;
 
+  normal.render(renderer);
   const normalTexture = normal.target.texture;
 
-  // debug.draw(renderer, normalTexture);
+  debug.draw(renderer, envTexture);
 
-  renderer.setRenderTarget(null);
-  renderer.setClearColor(white, 1);
-  renderer.clear();
+  // renderer.setRenderTarget(null);
+  // renderer.setClearColor(white, 1);
+  // renderer.clear();
 
-  renderer.render(scene, camera);
+  // renderer.render(scene, camera);
 
-  controls.update();
+  // controls.update();
 
   window.requestAnimationFrame(animate);
 }
@@ -409,7 +455,13 @@ function onMouseMove(event) {
   }
 }
 
-const loaded = [waterSimulation.loaded, water.loaded, floor.loaded, debug.loaded, normal.loaded];
+const loaded = [
+  waterSimulation.loaded,
+  water.loaded, floor.loaded,
+  env.loaded,
+  normal.loaded,
+  debug.loaded,
+];
 
 Promise.all(loaded).then(() => {
   scene.add(water.mesh);
