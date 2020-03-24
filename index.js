@@ -287,7 +287,7 @@ class NormalMapper {
     this.target = new THREE.WebGLRenderTarget(1024, 1024, {type: THREE.FloatType});
 
     const shadersPromises = [
-      loadFile('shaders/water/vertex.glsl'),
+      loadFile('shaders/normal/vertex.glsl'),
       loadFile('shaders/normal/water_fragment.glsl'),
       loadFile('shaders/normal/environment_fragment.glsl')
     ];
@@ -483,7 +483,8 @@ function animate() {
   normal.render(renderer);
   const normalTexture = normal.target.texture;
 
-  debug.draw(renderer, envTexture);
+  // debug.draw(renderer, envTexture);
+  debug.draw(renderer, normalTexture);
 
   // renderer.setRenderTarget(null);
   // renderer.setClearColor(white, 1);
