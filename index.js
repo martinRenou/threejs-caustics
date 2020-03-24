@@ -20,6 +20,8 @@ function loadFile(filename) {
 // Constants
 const light = [0., 0., -1.];
 const waterPosition = new THREE.Vector3(0, 0, 0.5);
+const near = 0.;
+const far = 5.;
 
 // Create Renderer
 const scene = new THREE.Scene();
@@ -236,7 +238,7 @@ class Water {
 class Env {
 
   constructor() {
-    this._camera = new THREE.OrthographicCamera(-1.2, 1.2, 1.2, -1.2);
+    this._camera = new THREE.OrthographicCamera(-1.2, 1.2, 1.2, -1.2, near, far);
     this._camera.position.set(-2 * light[0], -2 * light[1], -2 * light[2]);
     this._camera.lookAt(0, 0, 0);
 
@@ -280,7 +282,7 @@ class Env {
 class NormalMapper {
 
   constructor() {
-    this._camera = new THREE.OrthographicCamera(-1.2, 1.2, 1.2, -1.2);
+    this._camera = new THREE.OrthographicCamera(-1.2, 1.2, 1.2, -1.2, near, far);
     this._camera.position.set(-2 * light[0], -2 * light[1], -2 * light[2]);
     this._camera.lookAt(0, 0, 0);
 
@@ -340,7 +342,7 @@ class NormalMapper {
 class Caustics {
 
   constructor() {
-    this._camera = new THREE.OrthographicCamera(-1.2, 1.2, 1.2, -1.2);
+    this._camera = new THREE.OrthographicCamera(-1.2, 1.2, 1.2, -1.2, near, far);
     this._camera.position.set(-2 * light[0], -2 * light[1], -2 * light[2]);
     this._camera.lookAt(0, 0, 0);
 
@@ -464,6 +466,7 @@ const water = new Water();
 const floor = new Floor();
 const env = new Env();
 const normal = new NormalMapper();
+const caustics = new Caustics();
 
 const debug = new Debug();
 
@@ -483,8 +486,13 @@ function animate() {
   normal.render(renderer);
   const normalTexture = normal.target.texture;
 
+  caustics.setTextures(envTexture, normalTexture);
+  caustics.render(renderer);
+  const causticsTexture = caustics.target.texture;
+
   // debug.draw(renderer, envTexture);
-  debug.draw(renderer, normalTexture);
+  // debug.draw(renderer, normalTexture);
+  debug.draw(renderer, causticsTexture);
 
   // renderer.setRenderTarget(null);
   // renderer.setClearColor(white, 1);
@@ -517,6 +525,7 @@ const loaded = [
   water.loaded, floor.loaded,
   env.loaded,
   normal.loaded,
+  caustics.loaded,
   debug.loaded,
 ];
 
