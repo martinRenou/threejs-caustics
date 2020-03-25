@@ -491,8 +491,8 @@ function animate() {
   const causticsTexture = caustics.target.texture;
 
   // debug.draw(renderer, envTexture);
-  // debug.draw(renderer, normalTexture);
-  debug.draw(renderer, causticsTexture);
+  debug.draw(renderer, normalTexture);
+  // debug.draw(renderer, causticsTexture);
 
   // renderer.setRenderTarget(null);
   // renderer.setClearColor(white, 1);
