@@ -1,7 +1,7 @@
-varying vec3 pos;
+varying vec4 worldPosition;
 varying float depth;
 
 
 void main() {
-  gl_FragColor = vec4(pos, depth);
+  gl_FragColor = vec4(worldPosition.xyz, depth);
 }

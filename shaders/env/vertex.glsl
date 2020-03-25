@@ -1,12 +1,13 @@
-varying vec3 pos;
+varying vec4 worldPosition;
 varying float depth;
 
 
 void main() {
-  pos = position;
+  // Compute world position
+  worldPosition = modelMatrix * vec4(position, 1.);
 
   // Project vertex in the screen coordinates
-  vec4 projectedPosition = projectionMatrix * modelViewMatrix * vec4(position, 1.);
+  vec4 projectedPosition = projectionMatrix * viewMatrix * worldPosition;
 
   // Store vertex depth
   float zDepth = projectedPosition.z / projectedPosition.w;
