@@ -1,18 +1,15 @@
-uniform vec3 light;
+// TODO Make it a uniform
+const float causticsFactor = 3.;
 
-uniform sampler2D env;
-uniform sampler2D waterNormal;
-
-varying vec2 coords;
-
-// Air refractive index / Water refractive index
-const float eta = 0.7504;
+varying vec3 oldPosition;
+varying vec3 newPosition;
 
 
 void main() {
+  float oldArea = length(dFdx(oldPosition)) * length(dFdy(oldPosition));
+  float newArea = length(dFdx(newPosition)) * length(dFdy(newPosition));
 
-  vec3 normal =
-  vec3 refracted = refract(light, normal, eta);
+  float causticsIntensity = causticsFactor * oldArea / newArea;
 
-  gl_FragColor = vec4(pos, depth);
+  gl_FragColor = vec4(causticsIntensity, 0., 0., 1.);
 }

@@ -366,9 +366,9 @@ class Caustics {
         vertexShader: vertexShader,
         fragmentShader: fragmentShader,
       });
-      // this._material.extensions = {
-      //   derivatives: true
-      // };
+      this._material.extensions = {
+        derivatives: true
+      };
 
       this._causticsMesh = new THREE.Mesh(this._causticsGeometry, this._material);
     });
