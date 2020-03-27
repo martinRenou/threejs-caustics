@@ -1,7 +1,7 @@
 uniform vec3 light;
 
+uniform sampler2D water;
 uniform sampler2D env;
-uniform sampler2D waterNormal;
 
 varying vec3 oldPosition;
 varying vec3 newPosition;
@@ -15,16 +15,19 @@ const float threshold = 0.001;
 
 
 void main() {
-  oldPosition = position;
+  vec4 waterInfo = texture2D(water, position.xy * 0.5 + 0.5);
+
+  // The water position is the vertex position on which we apply the height-map
+  vec3 waterPosition = vec3(position.xy, position.z + waterInfo.r);
+  vec3 waterNormal = vec3(waterInfo.b, sqrt(1.0 - dot(waterInfo.ba, waterInfo.ba)), waterInfo.a);
+
+  // This is the initial position: the ray starting point
+  oldPosition = waterPosition;
 
   vec3 pos = position;
   vec2 coords = pos.xy * 0.5 + 0.5;
 
-  vec4 water = texture2D(waterNormal, coords);
-  vec3 normal = water.xyz;
-  float depth = water.w;
-
-  vec3 refracted = refract(light, normal, eta);
+  vec3 refracted = refract(light, waterNormal, eta);
 
   if (length(light - refracted) > threshold) {
     // do {
@@ -32,10 +35,10 @@ void main() {
     //   coords = pos * 0.5 + 0.5;
 
     // } while ()
-    coords += 2.;
+    coords += 0.01;
   }
 
   newPosition = texture2D(env, coords).xyz;
 
-  gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+  gl_Position = projectionMatrix * viewMatrix * vec4(newPosition, 1.0);
 }

@@ -275,11 +275,7 @@ class Env {
 }
 
 
-// This class renders the water normal for each fragment visible
-// from the light point of view. If the water is not visible from
-// the light point of view, for example because hidden by another
-// mesh like the pool.
-class NormalMapper {
+class Caustics {
 
   constructor() {
     this._camera = new THREE.OrthographicCamera(-1.2, 1.2, 1.2, -1.2, near, far);
@@ -288,19 +284,24 @@ class NormalMapper {
 
     this.target = new THREE.WebGLRenderTarget(1024, 1024, {type: THREE.FloatType});
 
+    this._waterGeometry = new THREE.PlaneBufferGeometry(2, 2, 256, 256);
+
     const shadersPromises = [
-      loadFile('shaders/normal/vertex.glsl'),
-      loadFile('shaders/normal/water_fragment.glsl'),
-      loadFile('shaders/normal/environment_fragment.glsl')
+      loadFile('shaders/caustics/water_vertex.glsl'),
+      loadFile('shaders/caustics/water_fragment.glsl'),
+      loadFile('shaders/caustics/environment_vertex.glsl'),
+      loadFile('shaders/caustics/environment_fragment.glsl')
     ];
 
     this.loaded = Promise.all(shadersPromises)
-        .then(([vertexShader, waterFragmentShader, environmentFragmentShader]) => {
+        .then(([waterVertexShader, waterFragmentShader, environmentVertexShader, environmentFragmentShader]) => {
       this._waterMaterial = new THREE.ShaderMaterial({
         uniforms: {
-            water: { value: null },
+          light: { value: light },
+          env: { value: null },
+          water: { value: null },
         },
-        vertexShader: vertexShader,
+        vertexShader: waterVertexShader,
         fragmentShader: waterFragmentShader,
       });
       this._waterMaterial.side = THREE.DoubleSide;
@@ -308,17 +309,19 @@ class NormalMapper {
         derivatives: true
       };
 
-      this._floorMaterial = new THREE.ShaderMaterial({
+      this._envMaterial = new THREE.ShaderMaterial({
+        vertexShader: environmentVertexShader,
         fragmentShader: environmentFragmentShader,
       });
-      this._floorMaterial.side = THREE.BackSide;
+      this._envMaterial.side = THREE.BackSide;
 
-      this._waterMesh = new THREE.Mesh(waterGeometry, this._waterMaterial);
-      this._floorMesh = new THREE.Mesh(floorGeometry, this._floorMaterial);
+      this._waterMesh = new THREE.Mesh(this._waterGeometry, this._waterMaterial);
+      this._floorMesh = new THREE.Mesh(floorGeometry, this._envMaterial);
     });
   }
 
-  setTexture(waterTexture) {
+  setTextures(waterTexture, envTexture) {
+    this._waterMaterial.uniforms['env'].value = envTexture;
     this._waterMaterial.uniforms['water'].value = waterTexture;
   }
 
@@ -331,62 +334,6 @@ class NormalMapper {
 
     renderer.render(this._waterMesh, this._camera);
     renderer.render(this._floorMesh, this._camera);
-
-    renderer.setRenderTarget(oldTarget);
-  }
-
-}
-
-
-// Class that renders the caustics, given the environment texture and the water normal texture
-class Caustics {
-
-  constructor() {
-    this._camera = new THREE.OrthographicCamera(-1.2, 1.2, 1.2, -1.2, near, far);
-    this._camera.position.set(-2 * light[0], -2 * light[1], -2 * light[2]);
-    this._camera.lookAt(0, 0, 0);
-
-    this.target = new THREE.WebGLRenderTarget(1024, 1024, {type: THREE.FloatType});
-
-    this._causticsGeometry = new THREE.PlaneBufferGeometry(2, 2, 256, 256);
-
-    const shadersPromises = [
-      loadFile('shaders/caustics/vertex.glsl'),
-      loadFile('shaders/caustics/fragment.glsl')
-    ];
-
-    this.loaded = Promise.all(shadersPromises)
-        .then(([vertexShader, fragmentShader]) => {
-      this._material = new THREE.ShaderMaterial({
-        uniforms: {
-          light: { value: light },
-          env: { value: null },
-          waterNormal: { value: null },
-        },
-        vertexShader: vertexShader,
-        fragmentShader: fragmentShader,
-      });
-      this._material.extensions = {
-        derivatives: true
-      };
-
-      this._causticsMesh = new THREE.Mesh(this._causticsGeometry, this._material);
-    });
-  }
-
-  setTextures(envTexture, normalTexture) {
-    this._material.uniforms['env'].value = envTexture;
-    this._material.uniforms['waterNormal'].value = normalTexture;
-  }
-
-  render(renderer) {
-    const oldTarget = renderer.getRenderTarget();
-
-    renderer.setRenderTarget(this.target);
-    renderer.setClearColor(black, 0);
-    renderer.clear();
-
-    renderer.render(this._causticsMesh, this._camera);
 
     renderer.setRenderTarget(oldTarget);
   }
@@ -462,10 +409,11 @@ class Debug {
 }
 
 const waterSimulation = new WaterSimulation();
+
 const water = new Water();
 const floor = new Floor();
+
 const env = new Env();
-const normal = new NormalMapper();
 const caustics = new Caustics();
 
 const debug = new Debug();
@@ -478,20 +426,15 @@ function animate() {
   const waterTexture = waterSimulation.target.texture;
 
   water.setTexture(waterTexture);
-  normal.setTexture(waterTexture);
 
   env.render(renderer, [floorGeometry]);
   const envTexture = env.target.texture;
 
-  normal.render(renderer);
-  const normalTexture = normal.target.texture;
-
-  caustics.setTextures(envTexture, normalTexture);
+  caustics.setTextures(waterTexture, envTexture);
   caustics.render(renderer);
   const causticsTexture = caustics.target.texture;
 
   // debug.draw(renderer, envTexture);
-  // debug.draw(renderer, normalTexture);
   debug.draw(renderer, causticsTexture);
 
   // renderer.setRenderTarget(null);
@@ -524,7 +467,6 @@ const loaded = [
   waterSimulation.loaded,
   water.loaded, floor.loaded,
   env.loaded,
-  normal.loaded,
   caustics.loaded,
   debug.loaded,
 ];
