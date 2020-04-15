@@ -19,23 +19,29 @@ void main() {
 
   // The water position is the vertex position on which we apply the height-map
   vec3 waterPosition = vec3(position.xy, position.z + waterInfo.r);
-  vec3 waterNormal = vec3(waterInfo.b, sqrt(1.0 - dot(waterInfo.ba, waterInfo.ba)), waterInfo.a);
+  vec3 waterNormal = normalize(vec3(waterInfo.b, sqrt(1.0 - dot(waterInfo.ba, waterInfo.ba)), waterInfo.a));
+
+  // Compute water coordinates in the screen space
+  vec4 projectedWaterPosition = projectionMatrix * viewMatrix * vec4(waterPosition, 1.);
+
+  // Compute water depth, from the light POV
+  float zDepth = projectedWaterPosition.z / projectedWaterPosition.w;
+  float waterDepth = 0.5 + zDepth * 0.5;
 
   // This is the initial position: the ray starting point
   oldPosition = waterPosition;
 
-  vec3 pos = position;
+  vec3 pos = projectedWaterPosition.xyz;
   vec2 coords = pos.xy * 0.5 + 0.5;
 
   vec3 refracted = refract(light, waterNormal, eta);
 
   if (length(light - refracted) > threshold) {
-    // do {
-    //   pos += refracted.xy; // This is .xy because the light is on the z axis for now. But we should generalize it.
-    //   coords = pos * 0.5 + 0.5;
+    do {
+      pos += refracted;
+      coords = pos * 0.5 + 0.5;
 
-    // } while ()
-    coords += 0.01;
+    } while ();
   }
 
   newPosition = texture2D(env, coords).xyz;
