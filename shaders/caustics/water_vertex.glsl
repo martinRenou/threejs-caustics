@@ -16,7 +16,9 @@ const float eta = 0.7504;
 const float EPSILON = 0.63;
 
 // TODO Make this a uniform
-const int MAX_ITERATIONS = 50;
+// This is the maximum iterations when looking for the ray intersection with the environment,
+// if after this number of attempts we did not find the intersection, the result will be off.
+const int MAX_ITERATIONS = 20;
 
 
 void main() {
@@ -57,9 +59,11 @@ void main() {
         break;
       }
 
+      // TODO This should depend on the texture size, we need to compute a certain ratio that will move the ray to one pixel average
       // Move the coords by one pixel in the direction of the refraction
       coords += refractedDirection;
 
+      // TODO This should depend on the result ratio from the line above
       // Move the current ray depth in the direction of the refraction
       currentDepth -= refractedDepth;
     }
