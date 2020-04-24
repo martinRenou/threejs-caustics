@@ -13,12 +13,12 @@ const float eta = 0.7504;
 // TODO Make this a uniform
 // Threshold for which rays are considered parallel. If you increase this number,
 // the shader will take less time to compute, but the caustics quality might be reduced.
-const float EPSILON = 0.63;
+const float EPSILON = 0.01;
 
 // TODO Make this a uniform
 // This is the maximum iterations when looking for the ray intersection with the environment,
 // if after this number of attempts we did not find the intersection, the result will be off.
-const int MAX_ITERATIONS = 20;
+const int MAX_ITERATIONS = 80;
 
 
 void main() {
@@ -48,7 +48,7 @@ void main() {
 
   color = vec3(0., 1., 0.);
 
-  if (all(lessThan(abs(light - refracted), vec3(EPSILON)))) {
+  if (all(greaterThan(abs(light - refracted), vec3(EPSILON)))) {
     float currentDepth = waterDepth;
 
     for (int i = 0; i < MAX_ITERATIONS; i++) {
@@ -59,13 +59,11 @@ void main() {
         break;
       }
 
-      // TODO This should depend on the texture size, we need to compute a certain ratio that will move the ray to one pixel average
       // Move the coords by one pixel in the direction of the refraction
-      coords += refractedDirection;
+      coords += refractedDirection * 0.004;
 
-      // TODO This should depend on the result ratio from the line above
       // Move the current ray depth in the direction of the refraction
-      currentDepth -= refractedDepth;
+      currentDepth += refractedDepth * 0.004;
     }
   }
 
