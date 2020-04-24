@@ -6,7 +6,7 @@ varying vec3 pos;
 void main() {
   vec3 dx = dFdx(pos);
   vec3 dy = dFdy(pos);
-  vec3 normal = normalize(cross(dx,dy));
+  vec3 normal = normalize(cross(dx, dy));
 
   float light_intensity = - dot(light, normalize(normal));
 
