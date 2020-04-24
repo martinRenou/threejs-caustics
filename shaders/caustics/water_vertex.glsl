@@ -14,8 +14,11 @@ const float EPSILON = 0.01;
 
 // TODO Make this a uniform
 // This is the maximum iterations when looking for the ray intersection with the environment,
-// if after this number of attempts we did not find the intersection, the result will be off.
+// if after this number of attempts we did not find the intersection, the result will be wrong.
 const int MAX_ITERATIONS = 100;
+
+const vec2 zero = vec2(0.);
+const vec2 one = vec2(1.);
 
 
 void main() {
@@ -45,13 +48,12 @@ void main() {
   vec2 refractedDirection = projectedRefractionVector.xy;
 
   float currentDepth = waterDepth;
-  vec4 environment;
-  environment = texture2D(env, coords);
+  vec4 environment = texture2D(env, coords);
 
   for (int i = 0; i < MAX_ITERATIONS; i++) {
-    if (environment.w - currentDepth <= EPSILON
-        || any(lessThan(coords, vec2(0.)))
-        || any(greaterThan(coords, vec2(1.)))) {
+    // End of loop condition: Either the ray has hit the environment, or we reached the environment texture boundaries
+    if (environment.w - currentDepth <= EPSILON ||
+        any(lessThan(coords, zero)) || any(greaterThan(coords, one))) {
       break;
     }
 
