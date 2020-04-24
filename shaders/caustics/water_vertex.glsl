@@ -5,28 +5,26 @@ uniform sampler2D env;
 
 varying vec3 oldPosition;
 varying vec3 newPosition;
-varying vec3 color;
 
 // Air refractive index / Water refractive index
 const float eta = 0.7504;
 
 // TODO Make this a uniform
-// Threshold for which rays are considered parallel. If you increase this number,
-// the shader will take less time to compute, but the caustics quality might be reduced.
 const float EPSILON = 0.01;
 
 // TODO Make this a uniform
 // This is the maximum iterations when looking for the ray intersection with the environment,
 // if after this number of attempts we did not find the intersection, the result will be off.
-const int MAX_ITERATIONS = 80;
+const int MAX_ITERATIONS = 100;
 
 
 void main() {
   vec4 waterInfo = texture2D(water, position.xy * 0.5 + 0.5);
 
   // The water position is the vertex position on which we apply the height-map
-  vec3 waterPosition = vec3(position.xy, position.z + waterInfo.r);
-  vec3 waterNormal = normalize(vec3(waterInfo.b, sqrt(1.0 - dot(waterInfo.ba, waterInfo.ba)), waterInfo.a));
+  // TODO Remove the ugly hardcoded +0.5 for the water position
+  vec3 waterPosition = vec3(position.xy, position.z + waterInfo.r + 0.5);
+  vec3 waterNormal = normalize(vec3(waterInfo.b, sqrt(1.0 - dot(waterInfo.ba, waterInfo.ba)), waterInfo.a)).xzy;
 
   // This is the initial position: the ray starting point
   oldPosition = waterPosition;
@@ -38,37 +36,35 @@ void main() {
   float zDepth = projectedWaterPosition.z / projectedWaterPosition.w;
   float waterDepth = 0.5 + zDepth * 0.5;
 
-  vec2 coords = projectedWaterPosition.xy;
+  vec2 coords = projectedWaterPosition.xy * 0.5 + 0.5;
 
   vec3 refracted = refract(light, waterNormal, eta);
   vec4 projectedRefractionVector = projectionMatrix * viewMatrix * vec4(refracted, 1.);
 
   float refractedDepth = 0.5 + 0.5 * projectedRefractionVector.z / projectedRefractionVector.w;
-  vec2 refractedDirection = normalize(projectedRefractionVector.xy);
+  vec2 refractedDirection = projectedRefractionVector.xy;
 
-  color = vec3(0., 1., 0.);
+  float currentDepth = waterDepth;
+  vec4 environment;
+  environment = texture2D(env, coords);
 
-  if (all(greaterThan(abs(light - refracted), vec3(EPSILON)))) {
-    float currentDepth = waterDepth;
-
-    for (int i = 0; i < MAX_ITERATIONS; i++) {
-      color = vec3(1., 0., 0.);
-      // TODO Add condition on the texture size, the coords should not got out of the texture boundaries
-      if (currentDepth > texture2D(env, coords * 0.5 + 0.5).w) {
-        color = vec3(0., 0., 1.);
-        break;
-      }
-
-      // Move the coords by one pixel in the direction of the refraction
-      coords += refractedDirection * 0.004;
-
-      // Move the current ray depth in the direction of the refraction
-      currentDepth += refractedDepth * 0.004;
+  for (int i = 0; i < MAX_ITERATIONS; i++) {
+    if (environment.w - currentDepth <= EPSILON
+        || any(lessThan(coords, vec2(0.)))
+        || any(greaterThan(coords, vec2(1.)))) {
+      break;
     }
+
+    // Move the coords in the direction of the refraction
+    coords += refractedDirection * 0.004;
+
+    // Move the current ray depth in the direction of the refraction
+    currentDepth += refractedDepth * 0.004;
+
+    environment = texture2D(env, coords);
   }
 
-  newPosition = texture2D(env, coords).xyz;
+  newPosition = environment.xyz;
 
-  // gl_Position = projectionMatrix * viewMatrix * vec4(newPosition, 1.0);
-  gl_Position = projectionMatrix * viewMatrix * vec4(oldPosition, 1.0);
+  gl_Position = projectionMatrix * viewMatrix * vec4(newPosition, 1.0);
 }
