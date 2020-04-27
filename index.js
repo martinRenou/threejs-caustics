@@ -303,7 +303,7 @@ class Caustics {
     this._camera.position.set(-2 * light[0], -2 * light[1], -2 * light[2]);
     this._camera.lookAt(0, 0, 0);
 
-    this.target = new THREE.WebGLRenderTarget(516, 516, {type: THREE.FloatType});
+    this.target = new THREE.WebGLRenderTarget(1024, 1024, {type: THREE.FloatType});
 
     this._waterGeometry = new THREE.PlaneBufferGeometry(2, 2, 216, 216);
 

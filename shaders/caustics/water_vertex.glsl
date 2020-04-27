@@ -5,6 +5,8 @@ uniform sampler2D env;
 
 varying vec3 oldPosition;
 varying vec3 newPosition;
+varying float waterDepth;
+varying float depth;
 
 // Air refractive index / Water refractive index
 const float eta = 0.7504;
@@ -37,7 +39,7 @@ void main() {
 
   // Compute water depth, from the light POV
   float zDepth = projectedWaterPosition.z / projectedWaterPosition.w;
-  float waterDepth = 0.5 + zDepth * 0.5;
+  waterDepth = 0.5 + zDepth * 0.5;
 
   vec2 coords = projectedWaterPosition.xy * 0.5 + 0.5;
 
@@ -67,6 +69,7 @@ void main() {
   }
 
   newPosition = environment.xyz;
+  depth = environment.w;
 
   gl_Position = projectionMatrix * viewMatrix * vec4(newPosition, 1.0);
 }
