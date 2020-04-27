@@ -118,8 +118,25 @@ const indices = new Uint32Array([
 poolGeometry.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
 poolGeometry.setIndex(new THREE.BufferAttribute(indices, 1));
 
-// Floor
+// Environment
 const floorGeometry = new THREE.PlaneBufferGeometry(4, 4, 1, 1);
+
+const sphereGeometry = new THREE.SphereBufferGeometry(0.2, 32, 32);
+sphereGeometry.translate(0.5, 0.5, 1.);
+const sphereMesh = new THREE.Mesh(sphereGeometry, new THREE.MeshStandardMaterial({color: 'white'}));
+
+const vtkLoader = new THREE.VTKLoader();
+let bunny;
+const bunnyLoaded = new Promise((resolve) => {
+  vtkLoader.load('bunny.vtk', (bunnyGeometry) => {
+    bunnyGeometry.center();
+    bunnyGeometry.computeVertexNormals();
+    bunnyGeometry.scale(4, 4, 4);
+
+    bunny = new THREE.Mesh(bunnyGeometry, new THREE.MeshStandardMaterial({color: 'white'}));
+    resolve();
+  });
+});
 
 class WaterSimulation {
 
@@ -286,19 +303,17 @@ class Caustics {
     this._camera.position.set(-2 * light[0], -2 * light[1], -2 * light[2]);
     this._camera.lookAt(0, 0, 0);
 
-    this.target = new THREE.WebGLRenderTarget(1024, 1024, {type: THREE.FloatType});
+    this.target = new THREE.WebGLRenderTarget(516, 516, {type: THREE.FloatType});
 
-    this._waterGeometry = new THREE.PlaneBufferGeometry(2, 2, 256, 256);
+    this._waterGeometry = new THREE.PlaneBufferGeometry(2, 2, 216, 216);
 
     const shadersPromises = [
       loadFile('shaders/caustics/water_vertex.glsl'),
       loadFile('shaders/caustics/water_fragment.glsl'),
-      loadFile('shaders/caustics/environment_vertex.glsl'),
-      loadFile('shaders/caustics/environment_fragment.glsl')
     ];
 
     this.loaded = Promise.all(shadersPromises)
-        .then(([waterVertexShader, waterFragmentShader, environmentVertexShader, environmentFragmentShader]) => {
+        .then(([waterVertexShader, waterFragmentShader]) => {
       this._waterMaterial = new THREE.ShaderMaterial({
         uniforms: {
           light: { value: light },
@@ -313,14 +328,7 @@ class Caustics {
         derivatives: true
       };
 
-      this._envMaterial = new THREE.ShaderMaterial({
-        vertexShader: environmentVertexShader,
-        fragmentShader: environmentFragmentShader,
-      });
-      this._envMaterial.side = THREE.BackSide;
-
       this._waterMesh = new THREE.Mesh(this._waterGeometry, this._waterMaterial);
-      this._floorMesh = new THREE.Mesh(floorGeometry, this._envMaterial);
     });
   }
 
@@ -337,7 +345,6 @@ class Caustics {
     renderer.clear();
 
     renderer.render(this._waterMesh, this._camera);
-    renderer.render(this._floorMesh, this._camera);
 
     renderer.setRenderTarget(oldTarget);
   }
@@ -433,7 +440,7 @@ function animate() {
 
   water.setTexture(waterTexture);
 
-  env.render(renderer, [floorGeometry]);
+  env.render(renderer, [floorGeometry, bunny.geometry, sphereGeometry]);
   const envTexture = env.target.texture;
 
   caustics.setTextures(waterTexture, envTexture);
@@ -477,11 +484,14 @@ const loaded = [
   env.loaded,
   caustics.loaded,
   debug.loaded,
+  bunnyLoaded
 ];
 
 Promise.all(loaded).then(() => {
   scene.add(water.mesh);
   scene.add(floor.mesh);
+  scene.add(sphereMesh);
+  scene.add(bunny);
 
   canvas.addEventListener('mousemove', { handleEvent: onMouseMove });
 
