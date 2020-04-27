@@ -132,6 +132,7 @@ const bunnyLoaded = new Promise((resolve) => {
     bunnyGeometry.center();
     bunnyGeometry.computeVertexNormals();
     bunnyGeometry.scale(4, 4, 4);
+    bunnyGeometry.translate(0, 0, 0.2);
 
     bunny = new THREE.Mesh(bunnyGeometry, new THREE.MeshStandardMaterial({color: 'white'}));
     resolve();
