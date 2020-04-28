@@ -60,9 +60,11 @@ void main() {
     }
 
     // Move the coords in the direction of the refraction
+    // TODO Replace this hardcoded 0.004 by 1/texture size
     coords += refractedDirection * 0.004;
 
     // Move the current ray depth in the direction of the refraction
+    // TODO Replace this hardcoded 0.004 by 1/texture size
     currentDepth += refractedDepth * 0.004;
 
     environment = texture2D(env, coords);
