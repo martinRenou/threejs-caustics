@@ -23,7 +23,7 @@ function loadFile(filename) {
 
 // Constants
 const light = [0., 0., -1.];
-const waterPosition = new THREE.Vector3(0, 0, 0.5);
+const waterPosition = new THREE.Vector3(0, 0, 0.8);
 const near = 0.;
 const far = 5.;
 
@@ -226,6 +226,7 @@ class Water {
         fragmentShader: fragmentShader,
       });
       this.material.side = THREE.DoubleSide;
+      this.material.transparent = true;
       this.material.extensions = {
         derivatives: true
       };
@@ -363,6 +364,7 @@ class Environment {
     this.loaded = Promise.all(shadersPromises).then(([vertexShader, fragmentShader]) => {
       this._material = new THREE.ShaderMaterial({
         uniforms: {
+          light: { value: light },
           caustics: { value: null },
         },
         vertexShader: vertexShader,
@@ -379,11 +381,13 @@ class Environment {
     }
   }
 
-  draw(renderer, camera, causticsTexture) {
+  updateCaustics(causticsTexture) {
     this._material.uniforms['caustics'].value = causticsTexture;
+  }
 
+  addTo(scene) {
     for (let mesh of this._meshes) {
-      renderer.render(mesh, camera);
+      scene.add(mesh);
     }
   }
 
@@ -458,15 +462,17 @@ function animate() {
   const causticsTexture = caustics.target.texture;
 
   // debug.draw(renderer, environmentMapTexture);
-  debug.draw(renderer, causticsTexture);
+  // debug.draw(renderer, causticsTexture);
 
-  // renderer.setRenderTarget(null);
-  // renderer.setClearColor(white, 1);
-  // renderer.clear();
+  environment.updateCaustics(causticsTexture);
 
-  // renderer.render(scene, camera);
+  renderer.setRenderTarget(null);
+  renderer.setClearColor(white, 1);
+  renderer.clear();
 
-  // controls.update();
+  renderer.render(scene, camera);
+
+  controls.update();
 
   stats.end();
 
@@ -492,14 +498,20 @@ const loaded = [
   waterSimulation.loaded,
   water.loaded,
   environmentMap.loaded,
+  environment.loaded,
   caustics.loaded,
   debug.loaded,
   bunnyLoaded
 ];
 
 Promise.all(loaded).then(() => {
-  environmentMap.setGeometries([floorGeometry, bunny.geometry, sphereGeometry]);
-  environment.setGeometries([floorGeometry, bunny.geometry, sphereGeometry]);
+  const envGeometries = [floorGeometry, bunny.geometry, sphereGeometry];
+
+  environmentMap.setGeometries(envGeometries);
+  environment.setGeometries(envGeometries);
+
+  environment.addTo(scene);
+  scene.add(water.mesh);
 
   canvas.addEventListener('mousemove', { handleEvent: onMouseMove });
 

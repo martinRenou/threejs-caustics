@@ -1,14 +1,11 @@
 uniform vec3 light;
 
 varying vec3 pos;
+varying vec3 norm;
 
 
 void main() {
-  vec3 dx = dFdx(pos);
-  vec3 dy = dFdy(pos);
-  vec3 normal = normalize(cross(dx, dy));
-
-  float light_intensity = - dot(light, normalize(normal));
+  float light_intensity = - dot(light, norm);
 
   vec3 color = vec3(0.45, 0.64, 0.74);
 

@@ -12,12 +12,12 @@ varying float depth;
 const float eta = 0.7504;
 
 // TODO Make this a uniform
-const float EPSILON = 0.01;
+const float EPSILON = 0.02;
 
 // TODO Make this a uniform
 // This is the maximum iterations when looking for the ray intersection with the environment,
 // if after this number of attempts we did not find the intersection, the result will be wrong.
-const int MAX_ITERATIONS = 100;
+const int MAX_ITERATIONS = 50;
 
 const vec2 zero = vec2(0.);
 const vec2 one = vec2(1.);
@@ -27,8 +27,8 @@ void main() {
   vec4 waterInfo = texture2D(water, position.xy * 0.5 + 0.5);
 
   // The water position is the vertex position on which we apply the height-map
-  // TODO Remove the ugly hardcoded +0.5 for the water position
-  vec3 waterPosition = vec3(position.xy, position.z + waterInfo.r + 0.5);
+  // TODO Remove the ugly hardcoded +0.8 for the water position
+  vec3 waterPosition = vec3(position.xy, position.z + waterInfo.r + 0.8);
   vec3 waterNormal = normalize(vec3(waterInfo.b, sqrt(1.0 - dot(waterInfo.ba, waterInfo.ba)), waterInfo.a)).xzy;
 
   // This is the initial position: the ray starting point
@@ -67,6 +67,7 @@ void main() {
     // TODO Replace this hardcoded 0.004 by 1/texture size
     currentDepth += refractedDepth * 0.004;
 
+    // TODO prevent rereading the same pixel if the coords did not change?
     environment = texture2D(env, coords);
   }
 
