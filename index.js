@@ -60,19 +60,6 @@ for (let vertex of targetgeometry.vertices) {
 }
 const targetmesh = new THREE.Mesh(targetgeometry);
 
-// Textures
-const cubetextureloader = new THREE.CubeTextureLoader();
-
-const textureCube = cubetextureloader.load([
-  'xpos.jpg', 'xneg.jpg',
-  'ypos.jpg', 'ypos.jpg',
-  'zpos.jpg', 'zneg.jpg',
-]);
-
-const textureloader = new THREE.TextureLoader();
-
-const tiles = textureloader.load('tiles.jpg');
-
 // Geometries
 const waterGeometry = new THREE.PlaneBufferGeometry(2, 2, 256, 256);
 const poolGeometry = new THREE.BufferGeometry();
@@ -365,7 +352,6 @@ class Floor {
         .then(([vertexShader, fragmentShader]) => {
       this._material = new THREE.ShaderMaterial({
         uniforms: {
-            tiles: { value: tiles },
         },
         vertexShader: vertexShader,
         fragmentShader: fragmentShader,
