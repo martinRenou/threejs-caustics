@@ -5,6 +5,8 @@ varying vec3 lightPosition;
 
 const float bias = 0.005;
 
+const vec3 underwaterColor = vec3(0.4, 0.9, 1.0);
+
 
 void main() {
   // Retrieve the caustics intensity
@@ -25,9 +27,5 @@ void main() {
     computedLightIntensity += causticsIntensity;
   }
 
-  vec3 color = vec3(computedLightIntensity);
-  // vec3 color = vec3(causticsDepth);
-  // vec3 color = vec3(lightPosition.z);
-
-  gl_FragColor = vec4(color, 1.);
+  gl_FragColor = vec4(underwaterColor * computedLightIntensity, 1.);
 }

@@ -112,7 +112,7 @@ poolGeometry.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
 poolGeometry.setIndex(new THREE.BufferAttribute(indices, 1));
 
 // Environment
-const floorGeometry = new THREE.PlaneBufferGeometry(4, 4, 1, 1);
+const floorGeometry = new THREE.PlaneBufferGeometry(2.5, 2.5, 1, 1);
 
 const sphereGeometry = new THREE.SphereBufferGeometry(0.2, 32, 32);
 sphereGeometry.translate(0.5, 0.5, 1.);
