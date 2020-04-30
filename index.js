@@ -364,6 +364,7 @@ class Environment {
         uniforms: {
           light: { value: light },
           caustics: { value: null },
+          lightProjectionMatrix: { value: lightCamera.projectionMatrix }
         },
         vertexShader: vertexShader,
         fragmentShader: fragmentShader,
