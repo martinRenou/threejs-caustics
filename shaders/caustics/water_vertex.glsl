@@ -68,6 +68,7 @@ void main() {
     currentDepth += refractedDepth * 0.004;
 
     // TODO prevent rereading the same pixel if the coords did not change?
+    // Or find a suitable factor (cleverer than 0.004) for going through the texture
     environment = texture2D(env, coords);
   }
 
