@@ -505,7 +505,7 @@ const loaded = [
 ];
 
 Promise.all(loaded).then(() => {
-  const envGeometries = [floorGeometry, bunny.geometry, sphereGeometry];
+  const envGeometries = [floorGeometry, bunny.geometry];
 
   environmentMap.setGeometries(envGeometries);
   environment.setGeometries(envGeometries);
