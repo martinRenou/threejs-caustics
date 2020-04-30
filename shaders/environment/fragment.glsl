@@ -3,6 +3,8 @@ uniform sampler2D caustics;
 varying float lightIntensity;
 varying vec3 lightPosition;
 
+const float bias = 0.005;
+
 
 void main() {
   // Retrieve the caustics intensity
@@ -19,7 +21,7 @@ void main() {
   float causticsIntensity = causticsInfo.x;
   float causticsDepth = causticsInfo.y;
 
-  if (causticsDepth <= lightPosition.z) {
+  if (causticsDepth > lightPosition.z - bias) {
     computedLightIntensity += causticsIntensity;
   }
 
