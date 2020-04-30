@@ -22,10 +22,16 @@ function loadFile(filename) {
 }
 
 // Constants
-const light = [0., 0., -1.];
 const waterPosition = new THREE.Vector3(0, 0, 0.8);
 const near = 0.;
 const far = 5.;
+
+// Create directional light
+// TODO Replace this by a THREE.DirectionalLight and use the provided matrix (check that it's an Orthographic matrix as expected)
+const light = [0., 0., -1.];
+const lightCamera = new THREE.OrthographicCamera(-1.2, 1.2, 1.2, -1.2, near, far);
+lightCamera.position.set(-2 * light[0], -2 * light[1], -2 * light[2]);
+lightCamera.lookAt(0, 0, 0);
 
 // Create Renderer
 const scene = new THREE.Scene();
@@ -248,10 +254,6 @@ class Water {
 class EnvironmentMap {
 
   constructor() {
-    this._camera = new THREE.OrthographicCamera(-1.2, 1.2, 1.2, -1.2, near, far);
-    this._camera.position.set(-2 * light[0], -2 * light[1], -2 * light[2]);
-    this._camera.lookAt(0, 0, 0);
-
     this.target = new THREE.WebGLRenderTarget(1024, 1024, {type: THREE.FloatType});
 
     const shadersPromises = [
@@ -286,7 +288,7 @@ class EnvironmentMap {
     renderer.clear();
 
     for (let mesh of this._meshes) {
-      renderer.render(mesh, this._camera);
+      renderer.render(mesh, lightCamera);
     }
 
     renderer.setRenderTarget(oldTarget);
@@ -298,10 +300,6 @@ class EnvironmentMap {
 class Caustics {
 
   constructor() {
-    this._camera = new THREE.OrthographicCamera(-1.2, 1.2, 1.2, -1.2, near, far);
-    this._camera.position.set(-2 * light[0], -2 * light[1], -2 * light[2]);
-    this._camera.lookAt(0, 0, 0);
-
     this.target = new THREE.WebGLRenderTarget(1024, 1024, {type: THREE.FloatType});
 
     this._waterGeometry = new THREE.PlaneBufferGeometry(2, 2, 216, 216);
@@ -343,7 +341,7 @@ class Caustics {
     renderer.setClearColor(black, 0);
     renderer.clear();
 
-    renderer.render(this._waterMesh, this._camera);
+    renderer.render(this._waterMesh, lightCamera);
 
     renderer.setRenderTarget(oldTarget);
   }
