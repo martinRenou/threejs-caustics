@@ -60,15 +60,15 @@ void main() {
     }
 
     // Move the coords in the direction of the refraction
-    // TODO Replace this hardcoded 0.004 by 1/texture size
-    coords += refractedDirection * 0.004;
+    // TODO Replace this hardcode value, and compute it in a clever way
+    coords += refractedDirection * 0.1;
 
     // Move the current ray depth in the direction of the refraction
-    // TODO Replace this hardcoded 0.004 by 1/texture size
-    currentDepth += refractedDepth * 0.004;
+    // TODO Replace this hardcode value, and compute it in a clever way
+    currentDepth += refractedDepth * 0.1;
 
     // TODO prevent rereading the same pixel if the coords did not change?
-    // Or find a suitable factor (cleverer than 0.004) for going through the texture
+    // Or find a suitable factor (cleverer than the hardcoded value) for going through the texture
     environment = texture2D(env, coords);
   }
 

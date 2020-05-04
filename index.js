@@ -67,7 +67,7 @@ for (let vertex of targetgeometry.vertices) {
 const targetmesh = new THREE.Mesh(targetgeometry);
 
 // Geometries
-const waterGeometry = new THREE.PlaneBufferGeometry(2, 2, 256, 256);
+const waterGeometry = new THREE.PlaneBufferGeometry(2, 2, 516, 516);
 const poolGeometry = new THREE.BufferGeometry();
 const vertices = new Float32Array([
   -1, -1, -1,
@@ -140,8 +140,8 @@ class WaterSimulation {
 
     this._geometry = new THREE.PlaneBufferGeometry(2, 2);
 
-    this._targetA = new THREE.WebGLRenderTarget(256, 256, {type: THREE.FloatType});
-    this._targetB = new THREE.WebGLRenderTarget(256, 256, {type: THREE.FloatType});
+    this._targetA = new THREE.WebGLRenderTarget(516, 516, {type: THREE.FloatType});
+    this._targetB = new THREE.WebGLRenderTarget(516, 516, {type: THREE.FloatType});
     this.target = this._targetA;
 
     const shadersPromises = [
@@ -165,7 +165,7 @@ class WaterSimulation {
 
       const updateMaterial = new THREE.RawShaderMaterial({
         uniforms: {
-            delta: { value: [1 / 256, 1 / 256] },  // TODO: Remove this useless uniform and hardcode it in shaders?
+            delta: { value: [1 / 216, 1 / 216] },  // TODO: Remove this useless uniform and hardcode it in shaders?
             texture: { value: null },
         },
         vertexShader: vertexShader,
@@ -303,7 +303,7 @@ class Caustics {
   constructor() {
     this.target = new THREE.WebGLRenderTarget(1024, 1024, {type: THREE.FloatType});
 
-    this._waterGeometry = new THREE.PlaneBufferGeometry(2, 2, 216, 216);
+    this._waterGeometry = new THREE.PlaneBufferGeometry(2, 2, 1024, 1024);
 
     const shadersPromises = [
       loadFile('shaders/caustics/water_vertex.glsl'),
