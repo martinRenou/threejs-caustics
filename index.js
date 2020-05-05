@@ -463,17 +463,17 @@ function animate() {
   const causticsTexture = caustics.target.texture;
 
   // debug.draw(renderer, environmentMapTexture);
-  // debug.draw(renderer, causticsTexture);
+  debug.draw(renderer, causticsTexture);
 
-  environment.updateCaustics(causticsTexture);
+  // environment.updateCaustics(causticsTexture);
 
-  renderer.setRenderTarget(null);
-  renderer.setClearColor(white, 1);
-  renderer.clear();
+  // renderer.setRenderTarget(null);
+  // renderer.setClearColor(white, 1);
+  // renderer.clear();
 
-  renderer.render(scene, camera);
+  // renderer.render(scene, camera);
 
-  controls.update();
+  // controls.update();
 
   stats.end();
 
@@ -516,13 +516,18 @@ Promise.all(loaded).then(() => {
 
   canvas.addEventListener('mousemove', { handleEvent: onMouseMove });
 
-  for (var i = 0; i < 20; i++) {
-    waterSimulation.addDrop(
-      renderer,
-      Math.random() * 2 - 1, Math.random() * 2 - 1,
-      0.03, (i & 1) ? 0.02 : -0.02
-    );
-  }
+  // for (var i = 0; i < 20; i++) {
+  //   waterSimulation.addDrop(
+  //     renderer,
+  //     Math.random() * 2 - 1, Math.random() * 2 - 1,
+  //     0.03, (i & 1) ? 0.02 : -0.02
+  //   );
+  // }
+  waterSimulation.addDrop(
+    renderer,
+    0, 0,
+    0.03, 0.2
+  );
 
   animate();
 });
