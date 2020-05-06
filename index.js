@@ -523,11 +523,11 @@ Promise.all(loaded).then(() => {
   //     0.03, (i & 1) ? 0.02 : -0.02
   //   );
   // }
-  waterSimulation.addDrop(
-    renderer,
-    0, 0,
-    0.03, 0.2
-  );
+  // waterSimulation.addDrop(
+  //   renderer,
+  //   0, 0,
+  //   0.03, 0.2
+  // );
 
   animate();
 });

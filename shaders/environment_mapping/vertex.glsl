@@ -10,7 +10,7 @@ void main() {
   vec4 projectedPosition = projectionMatrix * viewMatrix * worldPosition;
 
   // Store vertex depth
-  depth = projectedPosition.z / projectedPosition.w;
+  depth = projectedPosition.z;
 
   gl_Position = projectedPosition;
 }

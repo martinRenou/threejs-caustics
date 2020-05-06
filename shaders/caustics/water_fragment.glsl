@@ -20,5 +20,5 @@ void main() {
   }
 
   // gl_FragColor = vec4(causticsIntensity, causticsIntensity, causticsIntensity, depth);
-  gl_FragColor = vec4(color, depth);
+  gl_FragColor = vec4(color, 1.);
 }
