@@ -17,9 +17,6 @@ const float eta = 0.7504;
 // if after this number of attempts we did not find the intersection, the result will be wrong.
 const int MAX_ITERATIONS = 50;
 
-const vec2 zero = vec2(0.);
-const vec2 one = vec2(1.);
-
 
 void main() {
   vec4 waterInfo = texture2D(water, position.xy * 0.5 + 0.5);
@@ -57,14 +54,12 @@ void main() {
     currentPosition += deltaDirection;
     currentDepth += deltaDepth;
 
-    coords = 0.5 + 0.5 * currentPosition;
-
     // End of loop condition: Either the ray has hit the environment
     if (environment.w <= currentDepth) {
       break;
     }
 
-    environment = texture2D(env, coords);
+    environment = texture2D(env, 0.5 + 0.5 * currentPosition);
   }
 
   newPosition = environment.xyz;

@@ -255,7 +255,7 @@ class Water {
 class EnvironmentMap {
 
   constructor() {
-    this.size = 512;
+    this.size = 1024;
     this.target = new THREE.WebGLRenderTarget(this.size, this.size, {type: THREE.FloatType});
 
     const shadersPromises = [
@@ -302,9 +302,9 @@ class EnvironmentMap {
 class Caustics {
 
   constructor() {
-    this.target = new THREE.WebGLRenderTarget(512, 512, {type: THREE.FloatType});
+    this.target = new THREE.WebGLRenderTarget(1024, 1024, {type: THREE.FloatType});
 
-    this._waterGeometry = new THREE.PlaneBufferGeometry(2, 2, 512, 512);
+    this._waterGeometry = new THREE.PlaneBufferGeometry(2, 2, 1024, 1024);
 
     const shadersPromises = [
       loadFile('shaders/caustics/water_vertex.glsl'),
