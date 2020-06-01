@@ -13,9 +13,6 @@ varying float depth;
 const float eta = 0.7504;
 
 // TODO Make this a uniform
-const float EPSILON = 0.001;
-
-// TODO Make this a uniform
 // This is the maximum iterations when looking for the ray intersection with the environment,
 // if after this number of attempts we did not find the intersection, the result will be wrong.
 const int MAX_ITERATIONS = 50;
@@ -50,34 +47,24 @@ void main() {
   float currentDepth = projectedWaterPosition.z;
   vec4 environment = texture2D(env, coords);
 
-  // If there is a refraction
-  if (!all(equal(refractedDirection.xy, zero))) {
-    // float factor = deltaEnvTexture / max(refractedDirection.x, refractedDirection.y);
-    float factor = deltaEnvTexture / length(refractedDirection.xy);
-    // float factor = deltaEnvTexture;
+  float factor = deltaEnvTexture / length(refractedDirection.xy);
 
-    vec2 deltaDirection = refractedDirection.xy * factor;
-    float deltaDepth = refractedDirection.z * factor;
+  vec2 deltaDirection = refractedDirection.xy * factor;
+  float deltaDepth = refractedDirection.z * factor;
 
-    for (int i = 0; i < MAX_ITERATIONS; i++) {
-      // End of loop condition: Either the ray has hit the environment
-      if (environment.w <= currentDepth) {
-        break;
-      }
+  for (int i = 0; i < MAX_ITERATIONS; i++) {
+    // Move the coords in the direction of the refraction
+    currentPosition += deltaDirection;
+    currentDepth += deltaDepth;
 
-      // Move the coords in the direction of the refraction
-      currentPosition += deltaDirection;
-      currentDepth += deltaDepth;
+    coords = 0.5 + 0.5 * currentPosition;
 
-      coords = 0.5 + 0.5 * currentPosition;
-
-      if (any(lessThan(coords, zero)) || any(greaterThan(coords, one))) {
-        environment = texture2D(env, clamp(coords, zero, one));
-        break;
-      }
-
-      environment = texture2D(env, coords);
+    // End of loop condition: Either the ray has hit the environment
+    if (environment.w <= currentDepth) {
+      break;
     }
+
+    environment = texture2D(env, coords);
   }
 
   newPosition = environment.xyz;
@@ -85,6 +72,5 @@ void main() {
   vec4 projectedEnvPosition = projectionMatrix * viewMatrix * vec4(environment.xyz, 1.0);
   depth = 0.5 + 0.5 * projectedEnvPosition.z / projectedEnvPosition.w;
 
-  // gl_Position = projectionMatrix * viewMatrix * vec4(oldPosition, 1.0);
   gl_Position = projectedEnvPosition;
 }
