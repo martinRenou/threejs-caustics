@@ -44,6 +44,7 @@ void main() {
   float currentDepth = projectedWaterPosition.z;
   vec4 environment = texture2D(env, coords);
 
+  // This factor will scale the delta parameters so that we move from one pixel to the other in the env map
   float factor = deltaEnvTexture / length(refractedDirection.xy);
 
   vec2 deltaDirection = refractedDirection.xy * factor;
@@ -54,7 +55,7 @@ void main() {
     currentPosition += deltaDirection;
     currentDepth += deltaDepth;
 
-    // End of loop condition: Either the ray has hit the environment
+    // End of loop condition: The ray has hit the environment
     if (environment.w <= currentDepth) {
       break;
     }
@@ -64,7 +65,7 @@ void main() {
 
   newPosition = environment.xyz;
 
-  vec4 projectedEnvPosition = projectionMatrix * viewMatrix * vec4(environment.xyz, 1.0);
+  vec4 projectedEnvPosition = projectionMatrix * viewMatrix * vec4(newPosition, 1.0);
   depth = 0.5 + 0.5 * projectedEnvPosition.z / projectedEnvPosition.w;
 
   gl_Position = projectedEnvPosition;
