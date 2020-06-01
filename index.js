@@ -36,7 +36,7 @@ lightCamera.lookAt(0, 0, 0);
 // Create Renderer
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(75, width / height, 0.01, 100);
-camera.position.set(0, -1, 1);
+camera.position.set(0, -2, 1);
 scene.add(camera);
 
 const renderer = new THREE.WebGLRenderer({canvas: canvas, antialias: true, alpha: true});
@@ -497,7 +497,7 @@ function onMouseMove(event) {
   const intersects = raycaster.intersectObject(targetmesh);
 
   for (let intersect of intersects) {
-    waterSimulation.addDrop(renderer, intersect.point.x, intersect.point.y, 0.03, 0.04);
+    waterSimulation.addDrop(renderer, intersect.point.x, intersect.point.y, 0.03, 0.02);
   }
 }
 
@@ -524,7 +524,7 @@ Promise.all(loaded).then(() => {
 
   canvas.addEventListener('mousemove', { handleEvent: onMouseMove });
 
-  for (var i = 0; i < 20; i++) {
+  for (var i = 0; i < 5; i++) {
     waterSimulation.addDrop(
       renderer,
       Math.random() * 2 - 1, Math.random() * 2 - 1,
