@@ -2,8 +2,7 @@ uniform vec3 light;
 
 uniform sampler2D water;
 uniform sampler2D env;
-
-varying vec3 color;
+uniform float deltaEnvTexture;
 
 varying vec3 oldPosition;
 varying vec3 newPosition;
@@ -51,23 +50,16 @@ void main() {
   float currentDepth = projectedWaterPosition.z;
   vec4 environment = texture2D(env, coords);
 
-  float wasted = 0.;
-  color = vec3(1., 0., 0.);
-
-  // // If there is a refraction
+  // If there is a refraction
   if (!all(equal(refractedDirection.xy, zero))) {
-    // Hard-coded for now (1. / envTextureWidth = 1. / 256)
-    const float deltaTexture = 0.04;
-    // float factor = deltaTexture / max(refractedDirection.x, refractedDirection.y);
-    float factor = deltaTexture / length(refractedDirection.xy);
-    // float factor = deltaTexture;
+    // float factor = deltaEnvTexture / max(refractedDirection.x, refractedDirection.y);
+    float factor = deltaEnvTexture / length(refractedDirection.xy);
+    // float factor = deltaEnvTexture;
 
     vec2 deltaDirection = refractedDirection.xy * factor;
     float deltaDepth = refractedDirection.z * factor;
 
     for (int i = 0; i < MAX_ITERATIONS; i++) {
-      wasted += 0.02;
-
       // End of loop condition: Either the ray has hit the environment
       if (environment.w <= currentDepth) {
         break;
@@ -87,8 +79,6 @@ void main() {
       environment = texture2D(env, coords);
     }
   }
-
-  color = environment.xyz;
 
   newPosition = environment.xyz;
 

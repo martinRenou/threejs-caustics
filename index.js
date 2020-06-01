@@ -255,7 +255,8 @@ class Water {
 class EnvironmentMap {
 
   constructor() {
-    this.target = new THREE.WebGLRenderTarget(1024, 1024, {type: THREE.FloatType});
+    this.size = 512;
+    this.target = new THREE.WebGLRenderTarget(this.size, this.size, {type: THREE.FloatType});
 
     const shadersPromises = [
       loadFile('shaders/environment_mapping/vertex.glsl'),
@@ -301,9 +302,9 @@ class EnvironmentMap {
 class Caustics {
 
   constructor() {
-    this.target = new THREE.WebGLRenderTarget(1024, 1024, {type: THREE.FloatType});
+    this.target = new THREE.WebGLRenderTarget(512, 512, {type: THREE.FloatType});
 
-    this._waterGeometry = new THREE.PlaneBufferGeometry(2, 2, 1024, 1024);
+    this._waterGeometry = new THREE.PlaneBufferGeometry(2, 2, 512, 512);
 
     const shadersPromises = [
       loadFile('shaders/caustics/water_vertex.glsl'),
@@ -317,6 +318,7 @@ class Caustics {
           light: { value: light },
           env: { value: null },
           water: { value: null },
+          deltaEnvTexture: { value: null },
         },
         vertexShader: waterVertexShader,
         fragmentShader: waterFragmentShader,
@@ -328,6 +330,10 @@ class Caustics {
 
       this._waterMesh = new THREE.Mesh(this._waterGeometry, this._waterMaterial);
     });
+  }
+
+  setDeltaEnvTexture(deltaEnvTexture) {
+    this._waterMaterial.uniforms['deltaEnvTexture'].value = deltaEnvTexture;
   }
 
   setTextures(waterTexture, envTexture) {
@@ -513,6 +519,8 @@ Promise.all(loaded).then(() => {
 
   environment.addTo(scene);
   scene.add(water.mesh);
+
+  caustics.setDeltaEnvTexture(1. / environmentMap.size);
 
   canvas.addEventListener('mousemove', { handleEvent: onMouseMove });
 

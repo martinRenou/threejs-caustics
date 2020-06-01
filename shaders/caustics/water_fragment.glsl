@@ -1,8 +1,6 @@
 // TODO Make it a uniform
 const float causticsFactor = 0.2;
 
-varying vec3 color;
-
 varying vec3 oldPosition;
 varying vec3 newPosition;
 varying float waterDepth;
@@ -19,6 +17,5 @@ void main() {
     causticsIntensity = causticsFactor * oldArea / newArea;
   }
 
-  // gl_FragColor = vec4(causticsIntensity, causticsIntensity, causticsIntensity, depth);
-  gl_FragColor = vec4(color, 1.);
+  gl_FragColor = vec4(causticsIntensity, causticsIntensity, causticsIntensity, depth);
 }
