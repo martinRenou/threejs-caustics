@@ -25,6 +25,7 @@ function loadFile(filename) {
 const waterPosition = new THREE.Vector3(0, 0, 0.8);
 const near = 0.;
 const far = 5.;
+const waterSize = 512;
 
 // Create directional light
 // TODO Replace this by a THREE.DirectionalLight and use the provided matrix (check that it's an Orthographic matrix as expected)
@@ -67,7 +68,7 @@ for (let vertex of targetgeometry.vertices) {
 const targetmesh = new THREE.Mesh(targetgeometry);
 
 // Geometries
-const waterGeometry = new THREE.PlaneBufferGeometry(2, 2, 516, 516);
+const waterGeometry = new THREE.PlaneBufferGeometry(2, 2, waterSize, waterSize);
 const poolGeometry = new THREE.BufferGeometry();
 const vertices = new Float32Array([
   -1, -1, -1,
@@ -140,8 +141,8 @@ class WaterSimulation {
 
     this._geometry = new THREE.PlaneBufferGeometry(2, 2);
 
-    this._targetA = new THREE.WebGLRenderTarget(516, 516, {type: THREE.FloatType});
-    this._targetB = new THREE.WebGLRenderTarget(516, 516, {type: THREE.FloatType});
+    this._targetA = new THREE.WebGLRenderTarget(waterSize, waterSize, {type: THREE.FloatType});
+    this._targetB = new THREE.WebGLRenderTarget(waterSize, waterSize, {type: THREE.FloatType});
     this.target = this._targetA;
 
     const shadersPromises = [
@@ -255,7 +256,7 @@ class Water {
 class EnvironmentMap {
 
   constructor() {
-    this.size = 1024;
+    this.size = 256;
     this.target = new THREE.WebGLRenderTarget(this.size, this.size, {type: THREE.FloatType});
 
     const shadersPromises = [
@@ -302,9 +303,9 @@ class EnvironmentMap {
 class Caustics {
 
   constructor() {
-    this.target = new THREE.WebGLRenderTarget(1024, 1024, {type: THREE.FloatType});
+    this.target = new THREE.WebGLRenderTarget(waterSize, waterSize, {type: THREE.FloatType});
 
-    this._waterGeometry = new THREE.PlaneBufferGeometry(2, 2, 1024, 1024);
+    this._waterGeometry = new THREE.PlaneBufferGeometry(2, 2, waterSize, waterSize);
 
     const shadersPromises = [
       loadFile('shaders/caustics/water_vertex.glsl'),
