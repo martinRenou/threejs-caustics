@@ -21,6 +21,16 @@ function loadFile(filename) {
   });
 }
 
+function loadTexture(filename) {
+  return new Promise((resolve, reject) => {
+    const loader = new THREE.TextureLoader();
+
+    loader.load(filename, (data) => {
+      resolve(data);
+    });
+  });
+}
+
 // Constants
 const waterPosition = new THREE.Vector3(0, 0, 0.8);
 const near = 0.;
@@ -133,6 +143,18 @@ const bunnyLoaded = new Promise((resolve) => {
     resolve();
   });
 });
+
+// Textures
+let concreteTexture;
+let concreteNormalTexture;
+const textureLoaded = loadTexture('concrete.png').then((texture) => {
+  concreteTexture = texture;
+});
+const normalTextureLoaded = loadTexture('concrete_normal.png').then((texture) => {
+  concreteNormalTexture = texture;
+});
+const texturesLoaded = Promise.all([textureLoaded, normalTextureLoaded]);
+
 
 class WaterSimulation {
 
@@ -372,6 +394,8 @@ class Environment {
         uniforms: {
           light: { value: light },
           caustics: { value: null },
+          texture: { value: null },
+          normalTexture: { value: null },
           lightProjectionMatrix: { value: lightCamera.projectionMatrix },
           lightViewMatrix: { value: lightCamera.matrixWorldInverse  }
         },
@@ -387,6 +411,11 @@ class Environment {
     for (let geometry of geometries) {
       this._meshes.push(new THREE.Mesh(geometry, this._material));
     }
+  }
+
+  setTexture(texture, normalTexture) {
+    this._material.uniforms['texture'].value = texture;
+    this._material.uniforms['normalTexture'].value = normalTexture;
   }
 
   updateCaustics(causticsTexture) {
@@ -509,14 +538,17 @@ const loaded = [
   environment.loaded,
   caustics.loaded,
   debug.loaded,
-  bunnyLoaded
+  bunnyLoaded,
+  texturesLoaded
 ];
 
 Promise.all(loaded).then(() => {
   const envGeometries = [floorGeometry, bunny.geometry];
 
   environmentMap.setGeometries(envGeometries);
+
   environment.setGeometries(envGeometries);
+  environment.setTexture(concreteTexture, concreteNormalTexture);
 
   environment.addTo(scene);
   scene.add(water.mesh);
