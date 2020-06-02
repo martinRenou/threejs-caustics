@@ -25,6 +25,7 @@ function loadFile(filename) {
 const waterPosition = new THREE.Vector3(0, 0, 0.8);
 const near = 0.;
 const far = 5.;
+const waterSize = 512;
 
 // Create directional light
 // TODO Replace this by a THREE.DirectionalLight and use the provided matrix (check that it's an Orthographic matrix as expected)
@@ -36,7 +37,7 @@ lightCamera.lookAt(0, 0, 0);
 // Create Renderer
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(75, width / height, 0.01, 100);
-camera.position.set(0, -1, 1);
+camera.position.set(0, -2, 1);
 scene.add(camera);
 
 const renderer = new THREE.WebGLRenderer({canvas: canvas, antialias: true, alpha: true});
@@ -67,7 +68,7 @@ for (let vertex of targetgeometry.vertices) {
 const targetmesh = new THREE.Mesh(targetgeometry);
 
 // Geometries
-const waterGeometry = new THREE.PlaneBufferGeometry(2, 2, 516, 516);
+const waterGeometry = new THREE.PlaneBufferGeometry(2, 2, waterSize, waterSize);
 const poolGeometry = new THREE.BufferGeometry();
 const vertices = new Float32Array([
   -1, -1, -1,
@@ -140,8 +141,8 @@ class WaterSimulation {
 
     this._geometry = new THREE.PlaneBufferGeometry(2, 2);
 
-    this._targetA = new THREE.WebGLRenderTarget(516, 516, {type: THREE.FloatType});
-    this._targetB = new THREE.WebGLRenderTarget(516, 516, {type: THREE.FloatType});
+    this._targetA = new THREE.WebGLRenderTarget(waterSize, waterSize, {type: THREE.FloatType});
+    this._targetB = new THREE.WebGLRenderTarget(waterSize, waterSize, {type: THREE.FloatType});
     this.target = this._targetA;
 
     const shadersPromises = [
@@ -255,7 +256,8 @@ class Water {
 class EnvironmentMap {
 
   constructor() {
-    this.target = new THREE.WebGLRenderTarget(1024, 1024, {type: THREE.FloatType});
+    this.size = 256;
+    this.target = new THREE.WebGLRenderTarget(this.size, this.size, {type: THREE.FloatType});
 
     const shadersPromises = [
       loadFile('shaders/environment_mapping/vertex.glsl'),
@@ -301,9 +303,9 @@ class EnvironmentMap {
 class Caustics {
 
   constructor() {
-    this.target = new THREE.WebGLRenderTarget(1024, 1024, {type: THREE.FloatType});
+    this.target = new THREE.WebGLRenderTarget(waterSize, waterSize, {type: THREE.FloatType});
 
-    this._waterGeometry = new THREE.PlaneBufferGeometry(2, 2, 1024, 1024);
+    this._waterGeometry = new THREE.PlaneBufferGeometry(2, 2, waterSize, waterSize);
 
     const shadersPromises = [
       loadFile('shaders/caustics/water_vertex.glsl'),
@@ -317,6 +319,7 @@ class Caustics {
           light: { value: light },
           env: { value: null },
           water: { value: null },
+          deltaEnvTexture: { value: null },
         },
         vertexShader: waterVertexShader,
         fragmentShader: waterFragmentShader,
@@ -328,6 +331,10 @@ class Caustics {
 
       this._waterMesh = new THREE.Mesh(this._waterGeometry, this._waterMaterial);
     });
+  }
+
+  setDeltaEnvTexture(deltaEnvTexture) {
+    this._waterMaterial.uniforms['deltaEnvTexture'].value = deltaEnvTexture;
   }
 
   setTextures(waterTexture, envTexture) {
@@ -491,7 +498,7 @@ function onMouseMove(event) {
   const intersects = raycaster.intersectObject(targetmesh);
 
   for (let intersect of intersects) {
-    waterSimulation.addDrop(renderer, intersect.point.x, intersect.point.y, 0.03, 0.04);
+    waterSimulation.addDrop(renderer, intersect.point.x, intersect.point.y, 0.03, 0.02);
   }
 }
 
@@ -514,9 +521,11 @@ Promise.all(loaded).then(() => {
   environment.addTo(scene);
   scene.add(water.mesh);
 
+  caustics.setDeltaEnvTexture(1. / environmentMap.size);
+
   canvas.addEventListener('mousemove', { handleEvent: onMouseMove });
 
-  for (var i = 0; i < 20; i++) {
+  for (var i = 0; i < 5; i++) {
     waterSimulation.addDrop(
       renderer,
       Math.random() * 2 - 1, Math.random() * 2 - 1,

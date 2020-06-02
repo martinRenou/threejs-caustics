@@ -2,6 +2,7 @@ uniform vec3 light;
 
 uniform sampler2D water;
 uniform sampler2D env;
+uniform float deltaEnvTexture;
 
 varying vec3 oldPosition;
 varying vec3 newPosition;
@@ -12,15 +13,9 @@ varying float depth;
 const float eta = 0.7504;
 
 // TODO Make this a uniform
-const float EPSILON = 0.02;
-
-// TODO Make this a uniform
 // This is the maximum iterations when looking for the ray intersection with the environment,
 // if after this number of attempts we did not find the intersection, the result will be wrong.
 const int MAX_ITERATIONS = 50;
-
-const vec2 zero = vec2(0.);
-const vec2 one = vec2(1.);
 
 
 void main() {
@@ -37,43 +32,41 @@ void main() {
   // Compute water coordinates in the screen space
   vec4 projectedWaterPosition = projectionMatrix * viewMatrix * vec4(waterPosition, 1.);
 
-  // Compute water depth, from the light POV
-  float zDepth = projectedWaterPosition.z / projectedWaterPosition.w;
-  waterDepth = 0.5 + zDepth * 0.5;
-
-  vec2 coords = projectedWaterPosition.xy * 0.5 + 0.5;
+  vec2 currentPosition = projectedWaterPosition.xy;
+  vec2 coords = 0.5 + 0.5 * currentPosition;
 
   vec3 refracted = refract(light, waterNormal, eta);
   vec4 projectedRefractionVector = projectionMatrix * viewMatrix * vec4(refracted, 1.);
 
-  float refractedDepth = 0.5 + 0.5 * projectedRefractionVector.z / projectedRefractionVector.w;
-  vec2 refractedDirection = projectedRefractionVector.xy;
+  vec3 refractedDirection = projectedRefractionVector.xyz;
 
-  float currentDepth = waterDepth;
+  waterDepth = 0.5 + 0.5 * projectedWaterPosition.z / projectedWaterPosition.w;
+  float currentDepth = projectedWaterPosition.z;
   vec4 environment = texture2D(env, coords);
 
+  // This factor will scale the delta parameters so that we move from one pixel to the other in the env map
+  float factor = deltaEnvTexture / length(refractedDirection.xy);
+
+  vec2 deltaDirection = refractedDirection.xy * factor;
+  float deltaDepth = refractedDirection.z * factor;
+
   for (int i = 0; i < MAX_ITERATIONS; i++) {
-    // End of loop condition: Either the ray has hit the environment, or we reached the environment texture boundaries
-    if (environment.w - currentDepth <= EPSILON ||
-        any(lessThan(coords, zero)) || any(greaterThan(coords, one))) {
+    // Move the coords in the direction of the refraction
+    currentPosition += deltaDirection;
+    currentDepth += deltaDepth;
+
+    // End of loop condition: The ray has hit the environment
+    if (environment.w <= currentDepth) {
       break;
     }
 
-    // Move the coords in the direction of the refraction
-    // TODO Replace this hardcode value, and compute it in a clever way
-    coords += refractedDirection * 0.1;
-
-    // Move the current ray depth in the direction of the refraction
-    // TODO Replace this hardcode value, and compute it in a clever way
-    currentDepth += refractedDepth * 0.1;
-
-    // TODO prevent rereading the same pixel if the coords did not change?
-    // Or find a suitable factor (cleverer than the hardcoded value) for going through the texture
-    environment = texture2D(env, coords);
+    environment = texture2D(env, 0.5 + 0.5 * currentPosition);
   }
 
   newPosition = environment.xyz;
-  depth = environment.w;
 
-  gl_Position = projectionMatrix * viewMatrix * vec4(newPosition, 1.0);
+  vec4 projectedEnvPosition = projectionMatrix * viewMatrix * vec4(newPosition, 1.0);
+  depth = 0.5 + 0.5 * projectedEnvPosition.z / projectedEnvPosition.w;
+
+  gl_Position = projectedEnvPosition;
 }
