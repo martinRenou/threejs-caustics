@@ -9,10 +9,6 @@ const vec3 underwaterColor = vec3(0.4, 0.9, 1.0);
 
 
 void main() {
-  // Retrieve the caustics intensity
-
-  // Compute the color given the light intensity
-
   // Set the frag color
   float computedLightIntensity = 0.5;
 
@@ -24,7 +20,7 @@ void main() {
   float causticsDepth = causticsInfo.y;
 
   if (causticsDepth > lightPosition.z - bias) {
-    computedLightIntensity += causticsIntensity * abs(lightIntensity);
+    computedLightIntensity += causticsIntensity * smoothstep(0., 1., lightIntensity);
   }
 
   gl_FragColor = vec4(underwaterColor * computedLightIntensity, 1.);
