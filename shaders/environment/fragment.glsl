@@ -3,7 +3,7 @@ uniform sampler2D caustics;
 varying float lightIntensity;
 varying vec3 lightPosition;
 
-const float bias = 0.005;
+const float bias = 0.001;
 
 const vec3 underwaterColor = vec3(0.4, 0.9, 1.0);
 
@@ -24,7 +24,7 @@ void main() {
   float causticsDepth = causticsInfo.y;
 
   if (causticsDepth > lightPosition.z - bias) {
-    computedLightIntensity += abs(causticsIntensity * lightIntensity);
+    computedLightIntensity += causticsIntensity * abs(lightIntensity);
   }
 
   gl_FragColor = vec4(underwaterColor * computedLightIntensity, 1.);
