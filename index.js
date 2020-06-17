@@ -24,14 +24,14 @@ function loadFile(filename) {
 // Constants
 const waterPosition = new THREE.Vector3(0, 0, 0.8);
 const near = 0.;
-const far = 5.;
+const far = 2.;
 const waterSize = 512;
 
 // Create directional light
 // TODO Replace this by a THREE.DirectionalLight and use the provided matrix (check that it's an Orthographic matrix as expected)
 const light = [0., 0., -1.];
 const lightCamera = new THREE.OrthographicCamera(-1.2, 1.2, 1.2, -1.2, near, far);
-lightCamera.position.set(-2 * light[0], -2 * light[1], -2 * light[2]);
+lightCamera.position.set(0., 0., 1.5);
 lightCamera.lookAt(0, 0, 0);
 
 // Create Renderer
@@ -57,6 +57,9 @@ controls.rotateSpeed = 2.5;
 controls.zoomSpeed = 1.2;
 controls.panSpeed = 0.9;
 controls.dynamicDampingFactor = 0.9;
+
+// Clock
+const clock = new THREE.Clock();
 
 // Ray caster
 const raycaster = new THREE.Raycaster();
@@ -115,21 +118,18 @@ poolGeometry.setIndex(new THREE.BufferAttribute(indices, 1));
 // Environment
 const floorGeometry = new THREE.PlaneBufferGeometry(2.5, 2.5, 1, 1);
 
-const sphereGeometry = new THREE.SphereBufferGeometry(0.2, 32, 32);
-sphereGeometry.translate(0.5, 0.5, 1.);
-const sphereMesh = new THREE.Mesh(sphereGeometry, new THREE.MeshStandardMaterial({color: 'white'}));
+const vtkLoader = new THREE.OBJLoader();
+let shark;
+const sharkLoaded = new Promise((resolve) => {
+  vtkLoader.load('WhiteShark.obj', (sharkGeometry) => {
+    sharkGeometry = sharkGeometry.children[0].geometry;
+    sharkGeometry.computeVertexNormals();
+    sharkGeometry.scale(0.12, 0.12, 0.12);
+    sharkGeometry.rotateX(Math.PI / 2.);
+    sharkGeometry.rotateZ(-Math.PI / 2.);
+    sharkGeometry.translate(0, 0, 0.4);
 
-const vtkLoader = new THREE.VTKLoader();
-let bunny;
-const bunnyLoaded = new Promise((resolve) => {
-  vtkLoader.load('bunny.vtk', (bunnyGeometry) => {
-    bunnyGeometry.center();
-    bunnyGeometry.computeVertexNormals();
-    bunnyGeometry.scale(4, 4, 4);
-    bunnyGeometry.rotateX(Math.PI / 2.);
-    bunnyGeometry.translate(0, 0, 0.2);
-
-    bunny = new THREE.Mesh(bunnyGeometry, new THREE.MeshStandardMaterial({color: 'white'}));
+    shark = new THREE.Mesh(sharkGeometry, new THREE.MeshStandardMaterial({color: 'white'}));
     resolve();
   });
 });
@@ -256,7 +256,7 @@ class Water {
 class EnvironmentMap {
 
   constructor() {
-    this.size = 256;
+    this.size = 1024;
     this.target = new THREE.WebGLRenderTarget(this.size, this.size, {type: THREE.FloatType});
 
     const shadersPromises = [
@@ -456,23 +456,28 @@ const debug = new Debug();
 function animate() {
   stats.begin();
 
-  waterSimulation.stepSimulation(renderer);
+  // Update the water
+  if (clock.getElapsedTime() > 0.032) {
+    waterSimulation.stepSimulation(renderer);
 
-  const waterTexture = waterSimulation.target.texture;
+    const waterTexture = waterSimulation.target.texture;
 
-  water.setTexture(waterTexture);
+    water.setTexture(waterTexture);
 
-  environmentMap.render(renderer);
-  const environmentMapTexture = environmentMap.target.texture;
+    environmentMap.render(renderer);
+    const environmentMapTexture = environmentMap.target.texture;
 
-  caustics.setTextures(waterTexture, environmentMapTexture);
-  caustics.render(renderer);
-  const causticsTexture = caustics.target.texture;
+    caustics.setTextures(waterTexture, environmentMapTexture);
+    caustics.render(renderer);
+    const causticsTexture = caustics.target.texture;
 
-  // debug.draw(renderer, environmentMapTexture);
-  // debug.draw(renderer, causticsTexture);
+    // debug.draw(renderer, environmentMapTexture);
+    // debug.draw(renderer, causticsTexture);
 
-  environment.updateCaustics(causticsTexture);
+    environment.updateCaustics(causticsTexture);
+
+    clock.start();
+  }
 
   renderer.setRenderTarget(null);
   renderer.setClearColor(white, 1);
@@ -509,11 +514,11 @@ const loaded = [
   environment.loaded,
   caustics.loaded,
   debug.loaded,
-  bunnyLoaded
+  sharkLoaded
 ];
 
 Promise.all(loaded).then(() => {
-  const envGeometries = [floorGeometry, bunny.geometry];
+  const envGeometries = [floorGeometry, shark.geometry];
 
   environmentMap.setGeometries(envGeometries);
   environment.setGeometries(envGeometries);
