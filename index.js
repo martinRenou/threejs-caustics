@@ -54,7 +54,7 @@ const controls = new THREE.OrbitControls(
 controls.minPolarAngle = 0;
 controls.maxPolarAngle = Math.PI / 2. - 0.1;
 
-controls.minDistance = 0.4;
+controls.minDistance = 2.;
 controls.maxDistance = 3.;
 
 
