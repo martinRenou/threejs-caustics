@@ -38,6 +38,7 @@ lightCamera.lookAt(0, 0, 0);
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(75, width / height, 0.01, 100);
 camera.position.set(0, -2, 1);
+camera.up.set(0, 0, 1);
 scene.add(camera);
 
 const renderer = new THREE.WebGLRenderer({canvas: canvas, antialias: true, alpha: true});
@@ -45,18 +46,17 @@ renderer.setSize(width, height);
 renderer.autoClear = false;
 
 // Create mouse Controls
-const controls = new THREE.TrackballControls(
+const controls = new THREE.OrbitControls(
   camera,
   canvas
 );
 
-controls.screen.width = width;
-controls.screen.height = height;
+controls.minPolarAngle = 0;
+controls.maxPolarAngle = Math.PI / 2. - 0.1;
 
-controls.rotateSpeed = 2.5;
-controls.zoomSpeed = 1.2;
-controls.panSpeed = 0.9;
-controls.dynamicDampingFactor = 0.9;
+controls.minDistance = 0.4;
+controls.maxDistance = 3.;
+
 
 // Clock
 const clock = new THREE.Clock();
