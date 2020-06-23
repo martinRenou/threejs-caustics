@@ -20,7 +20,12 @@ void main() {
   float causticsDepth = causticsInfo.y;
 
   if (causticsDepth > lightPosition.z - bias) {
-    computedLightIntensity += abs(causticsIntensity) * smoothstep(0., 1., lightIntensity);
+    computedLightIntensity += causticsIntensity * smoothstep(0., 1., lightIntensity);
+  }
+
+  // Debug NVidia
+  if (computedLightIntensity < 0.5) {
+    computedLightIntensity = 0.5;
   }
 
   gl_FragColor = vec4(underwaterColor * computedLightIntensity, 1.);
