@@ -20,7 +20,7 @@ void main() {
   float causticsDepth = causticsInfo.y;
 
   if (causticsDepth > lightPosition.z - bias) {
-    computedLightIntensity += causticsIntensity * smoothstep(0., 1., lightIntensity);
+    computedLightIntensity += abs(causticsIntensity) * smoothstep(0., 1., lightIntensity);
   }
 
   gl_FragColor = vec4(underwaterColor * computedLightIntensity, 1.);
