@@ -1,5 +1,5 @@
 // TODO Make it a uniform
-const float causticsFactor = 0.2;
+const float causticsFactor = 0.15;
 
 varying vec3 oldPosition;
 varying vec3 newPosition;
