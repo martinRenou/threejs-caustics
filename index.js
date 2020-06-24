@@ -118,10 +118,10 @@ poolGeometry.setIndex(new THREE.BufferAttribute(indices, 1));
 // Environment
 const floorGeometry = new THREE.PlaneBufferGeometry(2.5, 2.5, 1, 1);
 
-const vtkLoader = new THREE.OBJLoader();
+const objLoader = new THREE.OBJLoader();
 let shark;
 const sharkLoaded = new Promise((resolve) => {
-  vtkLoader.load('WhiteShark.obj', (sharkGeometry) => {
+  objLoader.load('WhiteShark.obj', (sharkGeometry) => {
     sharkGeometry = sharkGeometry.children[0].geometry;
     sharkGeometry.computeVertexNormals();
     sharkGeometry.scale(0.12, 0.12, 0.12);
@@ -129,7 +129,26 @@ const sharkLoaded = new Promise((resolve) => {
     sharkGeometry.rotateZ(-Math.PI / 2.);
     sharkGeometry.translate(0, 0, 0.4);
 
-    shark = new THREE.Mesh(sharkGeometry, new THREE.MeshStandardMaterial({color: 'white'}));
+    shark = sharkGeometry;
+    resolve();
+  });
+});
+
+let rock;
+const rockLoaded = new Promise((resolve) => {
+  objLoader.load('rock.obj', (rockGeometry) => {
+    rockGeometry = rockGeometry.children[0].geometry;
+    rockGeometry.computeVertexNormals();
+    rockGeometry.scale(0.05, 0.05, 0.05);
+    // rockGeometry.rotateZ(-Math.PI / 2.);
+    rockGeometry.translate(0.5, 0, 0.1);
+
+    rock1 = rockGeometry;
+
+    rock2 = new THREE.BufferGeometry().copy(rockGeometry);
+    rock2.translate(-1., 0.5, 0.1)
+    rock2.rotateZ(Math.PI / 2.);
+
     resolve();
   });
 });
@@ -303,7 +322,7 @@ class EnvironmentMap {
 class Caustics {
 
   constructor() {
-    this.target = new THREE.WebGLRenderTarget(waterSize * 2., waterSize * 2., {type: THREE.FloatType});
+    this.target = new THREE.WebGLRenderTarget(waterSize * 3., waterSize * 3., {type: THREE.FloatType});
 
     this._waterGeometry = new THREE.PlaneBufferGeometry(2, 2, waterSize, waterSize);
 
@@ -530,11 +549,12 @@ const loaded = [
   environment.loaded,
   caustics.loaded,
   debug.loaded,
-  sharkLoaded
+  sharkLoaded,
+  rockLoaded,
 ];
 
 Promise.all(loaded).then(() => {
-  const envGeometries = [floorGeometry, shark.geometry];
+  const envGeometries = [floorGeometry, shark, rock1, rock2];
 
   environmentMap.setGeometries(envGeometries);
   environment.setGeometries(envGeometries);
