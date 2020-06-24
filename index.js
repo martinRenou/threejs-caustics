@@ -323,7 +323,23 @@ class Caustics {
         },
         vertexShader: waterVertexShader,
         fragmentShader: waterFragmentShader,
+        transparent: true,
       });
+
+      this._waterMaterial.blending = THREE.CustomBlending;
+
+      // Set the blending so that:
+      // Caustics intensity uses an additive function
+      this._waterMaterial.blendEquation = THREE.AddEquation;
+      this._waterMaterial.blendSrc = THREE.OneFactor;
+      this._waterMaterial.blendDst = THREE.OneFactor;
+
+      // Caustics depth does not use blending, we just set the value
+      this._waterMaterial.blendEquationAlpha = THREE.AddEquation;
+      this._waterMaterial.blendSrcAlpha = THREE.OneFactor;
+      this._waterMaterial.blendDstAlpha = THREE.ZeroFactor;
+
+
       this._waterMaterial.side = THREE.DoubleSide;
       this._waterMaterial.extensions = {
         derivatives: true

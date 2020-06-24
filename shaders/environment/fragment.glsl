@@ -15,7 +15,7 @@ void main() {
   computedLightIntensity += 0.2 * lightIntensity;
 
   // Retrieve caustics information
-  vec2 causticsInfo = texture2D(caustics, lightPosition.xy).zw;
+  vec2 causticsInfo = texture2D(caustics, lightPosition.xy).xw;
   float causticsIntensity = causticsInfo.x;
   float causticsDepth = causticsInfo.y;
 
