@@ -33,8 +33,8 @@ void main() {
   if (causticsDepth > lightPosition.z - bias) {
     // Percentage Close Filtering
     float causticsIntensity = 0.5 * (
-      blur(caustics, lightPosition.xy, resolution, vec2(0., 1.)) +
-      blur(caustics, lightPosition.xy, resolution, vec2(1., 0.))
+      blur(caustics, lightPosition.xy, resolution, vec2(0., 0.5)) +
+      blur(caustics, lightPosition.xy, resolution, vec2(0.5, 0.))
     );
 
     computedLightIntensity += causticsIntensity * smoothstep(0., 1., lightIntensity);;
