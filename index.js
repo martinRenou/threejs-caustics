@@ -303,7 +303,7 @@ class EnvironmentMap {
 class Caustics {
 
   constructor() {
-    this.target = new THREE.WebGLRenderTarget(waterSize, waterSize, {type: THREE.FloatType});
+    this.target = new THREE.WebGLRenderTarget(waterSize * 2., waterSize * 2., {type: THREE.FloatType});
 
     this._waterGeometry = new THREE.PlaneBufferGeometry(2, 2, waterSize, waterSize);
 
