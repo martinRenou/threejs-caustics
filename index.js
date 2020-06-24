@@ -134,7 +134,8 @@ const sharkLoaded = new Promise((resolve) => {
   });
 });
 
-let rock;
+let rock1;
+let rock2;
 const rockLoaded = new Promise((resolve) => {
   objLoader.load('rock.obj', (rockGeometry) => {
     rockGeometry = rockGeometry.children[0].geometry;
@@ -148,6 +149,21 @@ const rockLoaded = new Promise((resolve) => {
     rock2.scale(0.05, 0.05, 0.05);
     rock2.translate(-0.5, 0.5, 0.2);
     rock2.rotateZ(Math.PI / 2.);
+
+    resolve();
+  });
+});
+
+let plant;
+const plantLoaded = new Promise((resolve) => {
+  objLoader.load('plant.obj', (plantGeometry) => {
+    plantGeometry = plantGeometry.children[0].geometry;
+    plantGeometry.computeVertexNormals();
+
+    plant = plantGeometry;
+    plant.rotateX(Math.PI / 6.);
+    plant.scale(0.03, 0.03, 0.03);
+    plant.translate(-0.5, 0.5, 0.);
 
     resolve();
   });
@@ -551,10 +567,11 @@ const loaded = [
   debug.loaded,
   sharkLoaded,
   rockLoaded,
+  plantLoaded,
 ];
 
 Promise.all(loaded).then(() => {
-  const envGeometries = [floorGeometry, shark, rock1, rock2];
+  const envGeometries = [floorGeometry, shark, rock1, rock2, plant];
 
   environmentMap.setGeometries(envGeometries);
   environment.setGeometries(envGeometries);
