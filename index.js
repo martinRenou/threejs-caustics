@@ -72,7 +72,6 @@ const targetmesh = new THREE.Mesh(targetgeometry);
 
 // Geometries
 const waterGeometry = new THREE.PlaneBufferGeometry(2, 2, waterSize, waterSize);
-const poolGeometry = new THREE.BufferGeometry();
 const vertices = new Float32Array([
   -1, -1, -1,
   -1, -1, 1,
@@ -111,9 +110,6 @@ const indices = new Uint32Array([
   20, 21, 22,
   22, 21, 23
 ]);
-
-poolGeometry.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
-poolGeometry.setIndex(new THREE.BufferAttribute(indices, 1));
 
 // Environment
 const floorGeometry = new THREE.PlaneBufferGeometry(2.5, 2.5, 1, 1);
