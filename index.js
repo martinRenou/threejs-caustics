@@ -274,7 +274,6 @@ class Water {
         fragmentShader: fragmentShader,
       });
       this.material.side = THREE.DoubleSide;
-      this.material.transparent = true;
       this.material.extensions = {
         derivatives: true
       };
@@ -542,6 +541,7 @@ function animate() {
   // Render the cube texture
   water.mesh.visible = false;
   cubeCamera.position.copy(waterPosition);
+  cubeCamera.clear(renderer, white, 0, 0);
   cubeCamera.update(renderer, scene);
 
   // Render the final scene

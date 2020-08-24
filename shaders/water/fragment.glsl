@@ -1,13 +1,18 @@
 uniform vec3 light;
+uniform samplerCube envMap;
 
 varying vec3 pos;
 varying vec3 norm;
+varying vec3 cameraVector;
+
+// Air refractive index / Water refractive index
+const float eta = 0.7504;
 
 
 void main() {
-  float light_intensity = - dot(light, norm);
+  // Refract ray and get the refracted color
+  vec3 color = textureCube(envMap, refract(cameraVector, norm, eta)).xyz;
+  // vec3 color = textureCube(envMap, reflect(cameraVector, norm)).xyz;
 
-  vec3 color = vec3(0.45, 0.64, 0.74);
-
-  gl_FragColor = vec4(color * light_intensity, 0.7);
+  gl_FragColor = vec4(color, 1);
 }
