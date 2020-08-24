@@ -111,6 +111,14 @@ const indices = new Uint32Array([
   22, 21, 23
 ]);
 
+// Dynamic cube texturing
+const cubeRenderTarget = new THREE.WebGLCubeRenderTarget(512, {
+  format: THREE.RGBFormat, generateMipmaps: true, minFilter: THREE.LinearMipmapLinearFilter
+});
+
+const cubeCamera = new THREE.CubeCamera(0.01, 100, cubeRenderTarget);
+scene.add(cubeCamera);
+
 // Environment
 const floorGeometry = new THREE.PlaneBufferGeometry(2.5, 2.5, 1, 1);
 
@@ -260,6 +268,7 @@ class Water {
         uniforms: {
             light: { value: light },
             water: { value: null },
+            envMap: { value: cubeRenderTarget.texture }
         },
         vertexShader: vertexShader,
         fragmentShader: fragmentShader,
@@ -530,6 +539,13 @@ function animate() {
   renderer.setClearColor(white, 1);
   renderer.clear();
 
+  // Render the cube texture
+  water.mesh.visible = false;
+  cubeCamera.position.copy(waterPosition);
+  cubeCamera.update(renderer, scene);
+
+  // Render the final scene
+  water.mesh.visible = true;
   renderer.render(scene, camera);
 
   controls.update();
