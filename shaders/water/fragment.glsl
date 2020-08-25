@@ -1,13 +1,10 @@
 uniform sampler2D envMap;
 
-varying vec2 projectedRefraction;
-varying vec2 projectedPosition;
-
-const float refractionFactor = 0.2;
+varying vec2 refractedPosition;
 
 
 void main() {
-  vec3 color = texture2D(envMap, (projectedPosition + refractionFactor * projectedRefraction) * 0.5 + 0.5).xyz;
+  vec3 color = texture2D(envMap, refractedPosition * 0.5 + 0.5).xyz;
 
   gl_FragColor = vec4(color, 1.);
 }
