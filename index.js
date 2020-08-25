@@ -114,7 +114,7 @@ const indices = new Uint32Array([
 ]);
 
 // Environment
-const floorGeometry = new THREE.PlaneBufferGeometry(2.5, 2.5, 1, 1);
+const floorGeometry = new THREE.PlaneBufferGeometry(100, 100, 1, 1);
 
 const objLoader = new THREE.OBJLoader();
 let shark;
@@ -267,7 +267,6 @@ class Water {
         vertexShader: vertexShader,
         fragmentShader: fragmentShader,
       });
-      this.material.side = THREE.DoubleSide;
       this.material.extensions = {
         derivatives: true
       };
