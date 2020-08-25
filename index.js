@@ -22,7 +22,7 @@ function loadFile(filename) {
 }
 
 // Constants
-const waterPosition = new THREE.Vector3(0, 0, 0.8);
+const waterPosition = new THREE.Vector3(0, 0, 0.7);
 const near = 0.;
 const far = 2.;
 const waterSize = 512;
@@ -540,7 +540,8 @@ function animate() {
 
   // Render the cube texture
   water.mesh.visible = false;
-  cubeCamera.position.copy(waterPosition);
+  // cubeCamera.position.copy(waterPosition);
+  cubeCamera.position.copy(new THREE.Vector3(0., 0., 1.9));
   cubeCamera.clear(renderer, white, 0, 0);
   cubeCamera.update(renderer, scene);
 
