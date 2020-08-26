@@ -167,6 +167,18 @@ const plantLoaded = new Promise((resolve) => {
   });
 });
 
+// Skybox
+const cubetextureloader = new THREE.CubeTextureLoader();
+
+const skybox = cubetextureloader.load([
+  'TropicalSunnyDay_px.jpg', 'TropicalSunnyDay_nx.jpg',
+  'TropicalSunnyDay_py.jpg', 'TropicalSunnyDay_ny.jpg',
+  'TropicalSunnyDay_pz.jpg', 'TropicalSunnyDay_nz.jpg',
+]);
+
+scene.background = skybox;
+
+
 class WaterSimulation {
 
   constructor() {
@@ -263,6 +275,7 @@ class Water {
             light: { value: light },
             water: { value: null },
             envMap: { value: null },
+            skybox: { value: skybox },
         },
         vertexShader: vertexShader,
         fragmentShader: fragmentShader,
