@@ -51,6 +51,8 @@ const controls = new THREE.OrbitControls(
   canvas
 );
 
+controls.target = waterPosition;
+
 controls.minPolarAngle = 0;
 controls.maxPolarAngle = Math.PI / 2. - 0.1;
 
