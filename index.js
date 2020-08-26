@@ -57,6 +57,8 @@ controls.maxPolarAngle = Math.PI / 2. - 0.1;
 controls.minDistance = 1.5;
 controls.maxDistance = 3.;
 
+// Target for computing the water refraction
+const temporaryRenderTarget = new THREE.WebGLRenderTarget(width, height);
 
 // Clock
 const clock = new THREE.Clock();
@@ -112,7 +114,7 @@ const indices = new Uint32Array([
 ]);
 
 // Environment
-const floorGeometry = new THREE.PlaneBufferGeometry(2.5, 2.5, 1, 1);
+const floorGeometry = new THREE.PlaneBufferGeometry(100, 100, 1, 1);
 
 const objLoader = new THREE.OBJLoader();
 let shark;
@@ -164,6 +166,18 @@ const plantLoaded = new Promise((resolve) => {
     resolve();
   });
 });
+
+// Skybox
+const cubetextureloader = new THREE.CubeTextureLoader();
+
+const skybox = cubetextureloader.load([
+  'TropicalSunnyDay_px.jpg', 'TropicalSunnyDay_nx.jpg',
+  'TropicalSunnyDay_py.jpg', 'TropicalSunnyDay_ny.jpg',
+  'TropicalSunnyDay_pz.jpg', 'TropicalSunnyDay_nz.jpg',
+]);
+
+scene.background = skybox;
+
 
 class WaterSimulation {
 
@@ -260,12 +274,12 @@ class Water {
         uniforms: {
             light: { value: light },
             water: { value: null },
+            envMap: { value: null },
+            skybox: { value: skybox },
         },
         vertexShader: vertexShader,
         fragmentShader: fragmentShader,
       });
-      this.material.side = THREE.DoubleSide;
-      this.material.transparent = true;
       this.material.extensions = {
         derivatives: true
       };
@@ -275,8 +289,12 @@ class Water {
     });
   }
 
-  setTexture(waterTexture) {
+  setHeightTexture(waterTexture) {
     this.material.uniforms['water'].value = waterTexture;
+  }
+
+  setEnvMapTexture(envMap) {
+    this.material.uniforms['envMap'].value = envMap;
   }
 
 }
@@ -509,7 +527,7 @@ function animate() {
 
     const waterTexture = waterSimulation.target.texture;
 
-    water.setTexture(waterTexture);
+    water.setHeightTexture(waterTexture);
 
     environmentMap.render(renderer);
     const environmentMapTexture = environmentMap.target.texture;
@@ -526,10 +544,22 @@ function animate() {
     clock.start();
   }
 
+  // Render everything but the refractive water
+  renderer.setRenderTarget(temporaryRenderTarget);
+  renderer.setClearColor(white, 1);
+  renderer.clear();
+
+  water.mesh.visible = false;
+  renderer.render(scene, camera);
+
+  water.setEnvMapTexture(temporaryRenderTarget.texture);
+
+  // Then render the final scene with the refractive water
   renderer.setRenderTarget(null);
   renderer.setClearColor(white, 1);
   renderer.clear();
 
+  water.mesh.visible = true;
   renderer.render(scene, camera);
 
   controls.update();

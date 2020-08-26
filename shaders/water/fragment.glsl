@@ -1,13 +1,14 @@
-uniform vec3 light;
+uniform sampler2D envMap;
+uniform samplerCube skybox;
 
-varying vec3 pos;
-varying vec3 norm;
+varying vec2 refractedPosition;
+varying vec3 reflected;
+varying float reflectionFactor;
 
 
 void main() {
-  float light_intensity = - dot(light, norm);
+  vec3 refractedColor = texture2D(envMap, refractedPosition * 0.5 + 0.5).xyz;
+  vec3 reflectedColor = textureCube(skybox, reflected).xyz;
 
-  vec3 color = vec3(0.45, 0.64, 0.74);
-
-  gl_FragColor = vec4(color * light_intensity, 0.7);
+  gl_FragColor = vec4(mix(refractedColor, reflectedColor, clamp(reflectionFactor, 0., 1.)), 1.);
 }
