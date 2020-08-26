@@ -119,7 +119,7 @@ const floorGeometry = new THREE.PlaneBufferGeometry(100, 100, 1, 1);
 const objLoader = new THREE.OBJLoader();
 let shark;
 const sharkLoaded = new Promise((resolve) => {
-  objLoader.load('WhiteShark.obj', (sharkGeometry) => {
+  objLoader.load('assets/WhiteShark.obj', (sharkGeometry) => {
     sharkGeometry = sharkGeometry.children[0].geometry;
     sharkGeometry.computeVertexNormals();
     sharkGeometry.scale(0.12, 0.12, 0.12);
@@ -135,7 +135,7 @@ const sharkLoaded = new Promise((resolve) => {
 let rock1;
 let rock2;
 const rockLoaded = new Promise((resolve) => {
-  objLoader.load('rock.obj', (rockGeometry) => {
+  objLoader.load('assets/rock.obj', (rockGeometry) => {
     rockGeometry = rockGeometry.children[0].geometry;
     rockGeometry.computeVertexNormals();
 
@@ -154,7 +154,7 @@ const rockLoaded = new Promise((resolve) => {
 
 let plant;
 const plantLoaded = new Promise((resolve) => {
-  objLoader.load('plant.obj', (plantGeometry) => {
+  objLoader.load('assets/plant.obj', (plantGeometry) => {
     plantGeometry = plantGeometry.children[0].geometry;
     plantGeometry.computeVertexNormals();
 
@@ -171,9 +171,9 @@ const plantLoaded = new Promise((resolve) => {
 const cubetextureloader = new THREE.CubeTextureLoader();
 
 const skybox = cubetextureloader.load([
-  'TropicalSunnyDay_px.jpg', 'TropicalSunnyDay_nx.jpg',
-  'TropicalSunnyDay_py.jpg', 'TropicalSunnyDay_ny.jpg',
-  'TropicalSunnyDay_pz.jpg', 'TropicalSunnyDay_nz.jpg',
+  'assets/TropicalSunnyDay_px.jpg', 'assets/TropicalSunnyDay_nx.jpg',
+  'assets/TropicalSunnyDay_py.jpg', 'assets/TropicalSunnyDay_ny.jpg',
+  'assets/TropicalSunnyDay_pz.jpg', 'assets/TropicalSunnyDay_nz.jpg',
 ]);
 
 scene.background = skybox;
