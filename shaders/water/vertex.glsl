@@ -1,6 +1,6 @@
 uniform sampler2D water;
 
-varying vec2 refractedPosition;
+varying vec2 refractedPosition[3];
 varying vec3 reflected;
 varying float reflectionFactor;
 
@@ -27,8 +27,16 @@ void main() {
 
   reflectionFactor = fresnelBias + fresnelScale * pow(1. + dot(eye, norm), fresnelPower);
 
-  vec4 projectedRefractedPosition = projectionMatrix * modelViewMatrix * vec4(pos + refractionFactor * refracted, 1.0);
-  refractedPosition = projectedRefractedPosition.xy / projectedRefractedPosition.w;
+  mat4 proj = projectionMatrix * modelViewMatrix;
 
-  gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
+  vec4 projectedRefractedPosition = proj * vec4(pos + refractionFactor * refracted, 1.0);
+  refractedPosition[0] = projectedRefractedPosition.xy / projectedRefractedPosition.w;
+
+  projectedRefractedPosition = proj * vec4(pos + refractionFactor * normalize(refract(eye, norm, eta * 0.96)), 1.0);
+  refractedPosition[1] = projectedRefractedPosition.xy / projectedRefractedPosition.w;
+
+  projectedRefractedPosition = proj * vec4(pos + refractionFactor * normalize(refract(eye, norm, eta * 0.92)), 1.0);
+  refractedPosition[2] = projectedRefractedPosition.xy / projectedRefractedPosition.w;
+
+  gl_Position = proj * vec4(pos, 1.0);
 }
